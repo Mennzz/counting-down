@@ -23,7 +23,7 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center space-x-2">
             <span className="text-2xl">🦄</span>
-            <h1 className="text-2xl font-playfair font-semibold text-rose-600">Consulant Dairy</h1>
+            <h1 className="text-2xl font-playfair font-semibold text-rose-600">Consultant Dairy</h1>
           </div>
           
           <div className="hidden md:flex items-center space-x-1">
