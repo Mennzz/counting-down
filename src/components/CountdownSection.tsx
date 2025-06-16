@@ -1,0 +1,84 @@
+
+import { useState, useEffect } from "react";
+import { Heart, Calendar } from "lucide-react";
+
+const CountdownSection = () => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  useEffect(() => {
+    const targetDate = new Date("2025-07-10T00:00:00");
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const difference = targetDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="max-w-4xl mx-auto text-center space-y-8">
+      <div className="space-y-4">
+        <div className="flex items-center justify-center space-x-2">
+          <Heart className="w-8 h-8 text-rose-500 animate-heart-beat" />
+          <h1 className="text-5xl md:text-6xl font-playfair font-semibold text-rose-600">
+            Until We Meet Again
+          </h1>
+          <Heart className="w-8 h-8 text-rose-500 animate-heart-beat" />
+        </div>
+        <p className="text-xl text-gray-600 font-inter">
+          Counting down to July 10th, 2025
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        {[
+          { label: "Days", value: timeLeft.days },
+          { label: "Hours", value: timeLeft.hours },
+          { label: "Minutes", value: timeLeft.minutes },
+          { label: "Seconds", value: timeLeft.seconds },
+        ].map((item, index) => (
+          <div key={item.label} className="love-card text-center">
+            <div className="text-4xl md:text-5xl font-playfair font-bold text-rose-600 mb-2">
+              {item.value}
+            </div>
+            <div className="text-sm text-gray-500 uppercase tracking-wider font-inter">
+              {item.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="love-card max-w-2xl mx-auto">
+        <div className="flex items-center justify-center space-x-2 mb-4">
+          <Calendar className="w-5 h-5 text-rose-500" />
+          <h3 className="text-xl font-playfair font-medium text-rose-600">Our Next Adventure</h3>
+        </div>
+        <p className="text-gray-600 font-inter leading-relaxed">
+          Every second brings us closer to being in each other's arms again. 
+          Until then, know that you're always in my thoughts and forever in my heart. 
+          The distance means nothing when we have each other.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default CountdownSection;
