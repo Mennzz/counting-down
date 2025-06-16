@@ -22,8 +22,8 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center space-x-2">
-            <Heart className="w-6 h-6 text-rose-500 animate-heart-beat" />
-            <h1 className="text-2xl font-playfair font-semibold text-rose-600">Our Love Story</h1>
+            <span className="text-2xl">🦄</span>
+            <h1 className="text-2xl font-playfair font-semibold text-rose-600">Consulant Dairy</h1>
           </div>
           
           <div className="hidden md:flex items-center space-x-1">
