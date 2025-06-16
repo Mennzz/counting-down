@@ -2,37 +2,67 @@
 import { Image, Heart } from "lucide-react";
 
 const PhotoGallery = () => {
-  // Placeholder photos - users can replace these with their own
+  // Personal photos from your uploads
   const photos = [
     {
       id: 1,
-      url: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400",
-      caption: "Our cozy evening together",
-      date: "December 2024"
+      url: "/lovable-uploads/e5565d81-3635-49e2-9129-b9042ca2da63.png",
+      caption: "Our little garden project together",
+      date: "Spring 2024"
     },
     {
       id: 2,
-      url: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400",
-      caption: "Lazy Sunday mornings",
-      date: "November 2024"
+      url: "/lovable-uploads/929d54ec-a5b3-4944-90aa-266679a22ca2.png",
+      caption: "Board game night adventures",
+      date: "Winter 2024"
     },
     {
       id: 3,
-      url: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400",
-      caption: "Sharing sweet moments",
-      date: "October 2024"
+      url: "/lovable-uploads/ed981704-de9a-4757-b49f-88b96d52487e.png",
+      caption: "Perfect sunny day at the park",
+      date: "Summer 2024"
     },
     {
       id: 4,
-      url: "https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=400",
-      caption: "Under the stars",
-      date: "September 2024"
+      url: "/lovable-uploads/6ca5342f-0d62-4551-8ec5-b6714dc075ee.png",
+      caption: "Game night cuddles",
+      date: "Autumn 2024"
     },
     {
       id: 5,
-      url: "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400",
-      caption: "Magical nights",
-      date: "August 2024"
+      url: "/lovable-uploads/ef8a64bf-3d66-4f7f-a54d-e0b7c21d3b99.png",
+      caption: "Cozy gaming sessions",
+      date: "Winter 2024"
+    },
+    {
+      id: 6,
+      url: "/lovable-uploads/2d76729f-182d-4e1a-a678-68d0318f5885.png",
+      caption: "Victory selfie!",
+      date: "Recent"
+    },
+    {
+      id: 7,
+      url: "/lovable-uploads/ec8c9a9f-aa87-413c-842c-f22dd10cd9e7.png",
+      caption: "Getting ready for our day",
+      date: "Recent"
+    },
+    {
+      id: 8,
+      url: "/lovable-uploads/ef8f6e48-a439-45ec-8346-87d46f71841f.png",
+      caption: "Exploring the city together",
+      date: "Summer 2024"
+    },
+    {
+      id: 9,
+      url: "/lovable-uploads/71989c87-987c-4cb7-be18-32d262f6c090.png",
+      caption: "Cooking adventures in the kitchen",
+      date: "Recent"
+    },
+    {
+      id: 10,
+      url: "/lovable-uploads/742653a6-cd13-4446-9b4f-dd2393a47d9f.png",
+      caption: "Our tomato harvest success",
+      date: "Summer 2024"
     },
   ];
 
