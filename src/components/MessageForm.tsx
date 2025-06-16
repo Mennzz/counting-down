@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MessageSquare, Heart, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -141,10 +140,10 @@ const MessageForm = () => {
         </h3>
         
         {messages.map((msg) => (
-          <div key={msg.id} className="love-card">
+          <div key={msg.id} className="bg-white/60 backdrop-blur-sm border border-rose-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center">
-                <Heart className="w-5 h-5 text-rose-500" />
+              <div className="w-10 h-10 bg-rose-50 rounded-full flex items-center justify-center border border-rose-100">
+                <Heart className="w-5 h-5 text-rose-400" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">

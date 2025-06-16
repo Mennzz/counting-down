@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { List, Heart, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,14 +43,14 @@ const TodoList = () => {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      Date: "bg-rose-100 text-rose-700",
-      Adventure: "bg-orange-100 text-orange-700",
-      Home: "bg-blue-100 text-blue-700",
-      Food: "bg-green-100 text-green-700",
-      Culture: "bg-purple-100 text-purple-700",
-      Activity: "bg-pink-100 text-pink-700",
+      Date: "bg-rose-50 text-rose-600 border-rose-200",
+      Adventure: "bg-orange-50 text-orange-600 border-orange-200",
+      Home: "bg-blue-50 text-blue-600 border-blue-200",
+      Food: "bg-green-50 text-green-600 border-green-200",
+      Culture: "bg-purple-50 text-purple-600 border-purple-200",
+      Activity: "bg-pink-50 text-pink-600 border-pink-200",
     };
-    return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-700";
+    return colors[category as keyof typeof colors] || "bg-gray-50 text-gray-600 border-gray-200";
   };
 
   const completedCount = todos.filter(todo => todo.completed).length;
@@ -140,7 +139,7 @@ const TodoList = () => {
                 </p>
               </div>
               
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(todo.category)}`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(todo.category)}`}>
                 {todo.category}
               </span>
             </div>
