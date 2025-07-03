@@ -1,10 +1,9 @@
-import { PlaneIcon, X } from "lucide-react";
+import { PlaneIcon } from "lucide-react";
 import {
   ComposableMap,
   Geographies,
   Geography,
   Marker,
-  Annotation,
   Line,
   Point,
 } from "react-simple-maps";
@@ -17,9 +16,9 @@ type Airport = {
 };
 
 import flightData from "../data/flight.json";
-import React from "react";
+import { useEffect, useState } from "react";
 
-const airports = [flightData.departureAirport, flightData.landingAirport] as Airport[];
+const airports = [flightData.departureAirport, flightData.arrivalAirport] as Airport[];
 
 const geoUrl =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -42,22 +41,47 @@ function getLerpedCoordinates(
 export default function PlaneFlightAnimation() {
   const getFlightText = () => {
     const hasDeparted = Date.now() > new Date(flightData.departureTime).getTime();
-    const hasLanded = Date.now() > new Date(flightData.landingTime).getTime();
+    const hasLanded = Date.now() > new Date(flightData.arrivalTime).getTime();
 
     if (hasLanded) {
       return "Flight has landed";
     } else if (hasDeparted) {
-      const secondsLeft = Math.max(0, Math.floor((new Date(flightData.landingTime).getTime() - Date.now()) / 1000));
-      const hours = Math.floor(secondsLeft / 3600);
-      const minutes = Math.floor((secondsLeft % 3600) / 60);
-      const seconds = secondsLeft % 60;
-      return `Landing in ${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      // const secondsLeft = Math.max(0, Math.floor((new Date(flightData.arrivalTime).getTime() - Date.now()) / 1000));
+      // const hours = Math.floor(secondsLeft / 3600);
+      // const minutes = Math.floor((secondsLeft % 3600) / 60);
+      // const seconds = secondsLeft % 60;
+      // return `Landing in ${hours.toString().padStart(2, "0")}:${minutes
+      //   .toString()
+      //   .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      const flightPercentage = lerp01(
+        Date.now(),
+        new Date(flightData.departureTime).getTime(),
+        new Date(flightData.arrivalTime).getTime()
+      );
+      return `Flight in progress: ${Math.round(flightPercentage * 100)}%`;
     } else {
       return "Flight has not departed yet";
     }
   }
+
+  // Make sure component re-renders, we don't actually have to use the value of `t` directly
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    const arrivalTime = new Date(flightData.arrivalTime).getTime();
+    const departureTime = new Date(flightData.departureTime).getTime();
+    const duration = arrivalTime - departureTime;
+    const updateT = () => {
+      const now = Date.now();
+      if (now >= arrivalTime) {
+        setT(1);
+      } else if (now >= departureTime) {
+        setT((now - departureTime) / duration);
+      }
+    };
+
+    const interval = setInterval(updateT, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div>
@@ -83,17 +107,17 @@ export default function PlaneFlightAnimation() {
 
         <Line
           from={flightData.departureAirport.coords as Point}
-          to={flightData.landingAirport.coords as Point}
+          to={flightData.arrivalAirport.coords as Point}
           stroke="#ff0000"
           strokeWidth={3}
           strokeLinecap="round"
           strokeDasharray="10, 10"
         />
 
-        <Marker coordinates={getLerpedCoordinates(flightData.departureAirport.coords as Point, flightData.landingAirport.coords as Point, lerp01(
+        <Marker coordinates={getLerpedCoordinates(flightData.departureAirport.coords as Point, flightData.arrivalAirport.coords as Point, lerp01(
           Date.now(),
           new Date(flightData.departureTime).getTime(),
-          new Date(flightData.landingTime).getTime()
+          new Date(flightData.arrivalTime).getTime()
         ))}>
           <PlaneIcon color="black" />
           <text
@@ -107,7 +131,7 @@ export default function PlaneFlightAnimation() {
         </Marker>
 
         {airports.map((airport) => (
-          <Marker coordinates={airport.coords}>
+          <Marker key={airport.shorthand} coordinates={airport.coords}>
             <circle
               r={10}
               fill="#dc2626"

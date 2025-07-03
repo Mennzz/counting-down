@@ -11,7 +11,7 @@
             52.3676
         ]
     },
-    "landingAirport": {
+    "arrivalAirport": {
         "name": "Arlanda",
         "city": "Stockholm",
         "shorthand": "ARN",
@@ -21,5 +21,5 @@
         ]
     },
     "departureTime": "2025-07-10T21:30:00+02:00",
-    "landingTime": "2025-07-10T23:30:00+02:00"
+    "arrivalTime": "2025-07-10T23:30:00+02:00"
 }

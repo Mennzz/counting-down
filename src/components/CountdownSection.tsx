@@ -14,7 +14,7 @@ const CountdownSection = () => {
   });
 
   useEffect(() => {
-    const targetDate = new Date("2025-07-10T00:00:00");
+    const targetDate = new Date(flightInfo.arrivalTime);
 
     const updateCountdown = () => {
       const now = new Date();
@@ -87,7 +87,7 @@ const CountdownSection = () => {
           <strong>Departure date:</strong> {new Date(flightInfo.departureTime).toLocaleDateString()} <br />
           <strong>Flight number:</strong> {flightInfo.flightNumber} <br />
           <strong>Flight departure:</strong> {flightInfo.departureAirport.city}, {flightInfo.departureAirport.shorthand} at {new Date(flightInfo.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <br />
-          <strong>Flight arrival:</strong> {flightInfo.landingAirport.city}, {flightInfo.landingAirport.shorthand} at {new Date(flightInfo.landingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br />
+          <strong>Flight arrival:</strong> {flightInfo.arrivalAirport.city}, {flightInfo.arrivalAirport.shorthand} at {new Date(flightInfo.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br />
           <strong>Tracking Link:</strong> <a href={flightInfo.trackingLink} className="text-rose-500" target="_blank" rel="noopener noreferrer">{flightInfo.trackingLink}</a>
         </p>
       </div>
