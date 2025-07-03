@@ -47,7 +47,7 @@ const CountdownSection = () => {
           <Heart className="w-8 h-8 text-rose-500 animate-heart-beat" />
         </div>
         <p className="text-xl text-gray-600 font-inter">
-          Counting down to July 10th, 2025
+          Counting down to {new Date(flightInfo.arrivalTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(flightInfo.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <br />
         </p>
       </div>
 
