@@ -1,6 +1,9 @@
 
 import { useState, useEffect } from "react";
 import { Heart, Calendar } from "lucide-react";
+import PlaneFlightAnimation from "./FlightAnim";
+
+import flightInfo from "../data/flight.json";
 
 const CountdownSection = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -11,7 +14,7 @@ const CountdownSection = () => {
   });
 
   useEffect(() => {
-    const targetDate = new Date("2025-07-10T00:00:00");
+    const targetDate = new Date(flightInfo.arrivalTime);
 
     const updateCountdown = () => {
       const now = new Date();
@@ -67,14 +70,25 @@ const CountdownSection = () => {
       </div>
 
       <div className="love-card max-w-2xl mx-auto">
+        <PlaneFlightAnimation />
+      </div>
+
+      <div className="love-card max-w-2xl mx-auto">
         <div className="flex items-center justify-center space-x-2 mb-4">
           <Calendar className="w-5 h-5 text-rose-500" />
           <h3 className="text-xl font-playfair font-medium text-rose-600">Our Next Adventure</h3>
         </div>
-        <p className="text-gray-600 font-inter leading-relaxed">
-          Every second brings us closer to being in each other's arms again. 
-          Until then, know that you're always in my thoughts and forever in my heart. 
+        <p className="text-gray-600 font-inter leading-relaxed mb-2">
+          Every second brings us closer to being in each other's arms again.
+          Until then, know that you're always in my thoughts and forever in my heart.
           The distance means nothing when we have each other.
+        </p>
+        <p className="text-gray-600 font-inter leading-relaxed">
+          <strong>Departure date:</strong> {new Date(flightInfo.departureTime).toLocaleDateString()} <br />
+          <strong>Flight number:</strong> {flightInfo.flightNumber} <br />
+          <strong>Flight departure:</strong> {flightInfo.departureAirport.city}, {flightInfo.departureAirport.shorthand} at {new Date(flightInfo.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <br />
+          <strong>Flight arrival:</strong> {flightInfo.arrivalAirport.city}, {flightInfo.arrivalAirport.shorthand} at {new Date(flightInfo.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br />
+          <strong>Tracking Link:</strong> <a href={flightInfo.trackingLink} className="text-rose-500" target="_blank" rel="noopener noreferrer">{flightInfo.trackingLink}</a>
         </p>
       </div>
     </div>
