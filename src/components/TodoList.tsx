@@ -1,44 +1,58 @@
 import { useState } from "react";
-import { List, Heart, Plus, Clock } from "lucide-react";
+import { List, Heart, Plus, Clock, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } from "@/hooks/useTodos";
 
 const TodoList = () => {
-  const [todos, setTodos] = useState([
-    { id: 1, text: "Watch the sunset together from the hill", completed: false, category: "Adventure" },
-    { id: 2, text: "Cook that pasta recipe we found online", completed: false, category: "Home" },
-    { id: 3, text: "Have a picnic in the park", completed: false, category: "Date" },
-    { id: 4, text: "Visit the art museum downtown", completed: false, category: "Culture" },
-    { id: 5, text: "Try that new coffee shop everyone talks about", completed: false, category: "Food" },
-    { id: 6, text: "Take a weekend trip to the mountains", completed: false, category: "Adventure" },
-    { id: 7, text: "Have a movie marathon night with our favorite films", completed: false, category: "Home" },
-    { id: 8, text: "Learn to dance together", completed: false, category: "Activity" },
-  ]);
-  
   const [newTodo, setNewTodo] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Date");
 
+  // React Query hooks for data fetching and mutations
+  const { data: todos = [], isLoading, error } = useTodos();
+  const createTodoMutation = useCreateTodo();
+  const updateTodoMutation = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
+  const toggleTodoMutation = useToggleTodo();
+
   const categories = ["Date", "Adventure", "Home", "Food", "Culture", "Activity"];
 
-  const addTodo = () => {
+  const addTodo = async () => {
     if (newTodo.trim()) {
-      setTodos([
-        ...todos,
-        {
-          id: Date.now(),
+      try {
+        await createTodoMutation.mutateAsync({
           text: newTodo.trim(),
-          completed: false,
           category: selectedCategory,
-        },
-      ]);
-      setNewTodo("");
+        });
+        setNewTodo("");
+      } catch (error) {
+        // Error is handled by the mutation hook
+        console.error("Failed to create todo:", error);
+      }
     }
   };
 
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  const toggleTodo = async (id: number) => {
+    const todo = todos.find(t => t.id === id);
+    if (todo) {
+      try {
+        await toggleTodoMutation.mutateAsync(id);
+      } catch (error) {
+        // Error is handled by the mutation hook
+        console.error("Failed to update todo:", error);
+      }
+    }
+  };
+
+  const deleteTodo = async (id: number) => {
+    try {
+      await deleteTodoMutation.mutateAsync(id);
+    } catch (error) {
+      // Error is handled by the mutation hook
+      console.error("Failed to delete todo:", error);
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -54,6 +68,60 @@ const TodoList = () => {
   };
 
   const completedCount = todos.filter(todo => todo.completed).length;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center space-x-2">
+            <List className="w-6 h-6 text-rose-500" />
+            <h2 className="text-4xl font-playfair font-semibold text-rose-600">Things We Want to Do Together</h2>
+            <List className="w-6 h-6 text-rose-500" />
+          </div>
+          <p className="text-lg text-gray-600 font-inter">
+            Our bucket list of shared adventures
+          </p>
+        </div>
+
+        <div className="love-card">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+          </div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center space-x-2">
+            <List className="w-6 h-6 text-rose-500" />
+            <h2 className="text-4xl font-playfair font-semibold text-rose-600">Things We Want to Do Together</h2>
+            <List className="w-6 h-6 text-rose-500" />
+          </div>
+          <p className="text-lg text-gray-600 font-inter">
+            Our bucket list of shared adventures
+          </p>
+        </div>
+
+        <div className="love-card">
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">Failed to load todos</p>
+            <p className="text-gray-500 text-sm">Please check your internet connection or try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -100,8 +168,12 @@ const TodoList = () => {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-          <Button onClick={addTodo} className="bg-rose-500 hover:bg-rose-600 text-white">
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={addTodo} className="bg-rose-500 hover:bg-rose-600 text-white" disabled={createTodoMutation.isPending}>
+            {createTodoMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4 mr-2" />
+            )}
             Add
           </Button>
         </div>
@@ -110,38 +182,51 @@ const TodoList = () => {
           {todos.map((todo) => (
             <div
               key={todo.id}
-              className={`flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 ${
-                todo.completed
-                  ? "bg-green-50 border-green-200"
-                  : "bg-white border-gray-200 hover:border-rose-200"
-              }`}
+              className={`flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 ${todo.completed
+                ? "bg-green-50 border-green-200"
+                : "bg-white border-gray-200 hover:border-rose-200"
+                }`}
             >
               <button
                 onClick={() => toggleTodo(todo.id)}
-                className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
-                  todo.completed
-                    ? "bg-green-500 border-green-500"
-                    : "border-gray-300 hover:border-rose-400"
-                }`}
+                disabled={updateTodoMutation.isPending}
+                className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${todo.completed
+                  ? "bg-green-500 border-green-500"
+                  : "border-gray-300 hover:border-rose-400"
+                  } ${updateTodoMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                {todo.completed && (
+                {updateTodoMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 text-white mx-auto animate-spin" />
+                ) : todo.completed ? (
                   <Heart className="w-4 h-4 text-white mx-auto" />
-                )}
+                ) : null}
               </button>
-              
+
               <div className="flex-1">
-                <p className={`font-inter ${
-                  todo.completed 
-                    ? "line-through text-gray-500" 
-                    : "text-gray-700"
-                }`}>
+                <p className={`font-inter ${todo.completed
+                  ? "line-through text-gray-500"
+                  : "text-gray-700"
+                  }`}>
                   {todo.text}
                 </p>
               </div>
-              
+
               <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(todo.category)}`}>
                 {todo.category}
               </span>
+
+              <button
+                onClick={() => deleteTodo(todo.id)}
+                disabled={deleteTodoMutation.isPending}
+                className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Delete todo"
+              >
+                {deleteTodoMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
             </div>
           ))}
         </div>
