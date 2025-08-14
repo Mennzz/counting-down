@@ -1,7 +1,10 @@
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
 
 const API_BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api";
+  import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : "http://localhost:3001/api";
+
+console.log("VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
+console.log("API_BASE_URL:", API_BASE_URL);
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
