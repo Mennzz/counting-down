@@ -23,7 +23,7 @@ const TodoList = () => {
     if (newTodo.trim()) {
       try {
         await createTodoMutation.mutateAsync({
-          text: newTodo.trim(),
+          title: newTodo.trim(),
           category: selectedCategory,
         });
         setNewTodo("");
@@ -34,11 +34,11 @@ const TodoList = () => {
     }
   };
 
-  const toggleTodo = async (id: number) => {
-    const todo = todos.find(t => t.id === id);
+  const toggleTodo = async (_id: number) => {
+    const todo = todos.find(t => t._id === _id);
     if (todo) {
       try {
-        await toggleTodoMutation.mutateAsync(id);
+        await toggleTodoMutation.mutateAsync(todo._id);
       } catch (error) {
         // Error is handled by the mutation hook
         console.error("Failed to update todo:", error);
@@ -46,9 +46,9 @@ const TodoList = () => {
     }
   };
 
-  const deleteTodo = async (id: number) => {
+  const deleteTodo = async (_id: number) => {
     try {
-      await deleteTodoMutation.mutateAsync(id);
+      await deleteTodoMutation.mutateAsync(_id);
     } catch (error) {
       // Error is handled by the mutation hook
       console.error("Failed to delete todo:", error);
@@ -181,14 +181,14 @@ const TodoList = () => {
         <div className="space-y-3">
           {todos.map((todo) => (
             <div
-              key={todo.id}
+              key={todo._id}
               className={`flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 ${todo.completed
                 ? "bg-green-50 border-green-200"
                 : "bg-white border-gray-200 hover:border-rose-200"
                 }`}
             >
               <button
-                onClick={() => toggleTodo(todo.id)}
+                onClick={() => toggleTodo(todo._id)}
                 disabled={updateTodoMutation.isPending}
                 className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${todo.completed
                   ? "bg-green-500 border-green-500"
@@ -207,7 +207,7 @@ const TodoList = () => {
                   ? "line-through text-gray-500"
                   : "text-gray-700"
                   }`}>
-                  {todo.text}
+                  {todo.title}
                 </p>
               </div>
 
@@ -216,7 +216,7 @@ const TodoList = () => {
               </span>
 
               <button
-                onClick={() => deleteTodo(todo.id)}
+                onClick={() => deleteTodo(todo._id)}
                 disabled={deleteTodoMutation.isPending}
                 className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Delete todo"

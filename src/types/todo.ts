@@ -1,6 +1,6 @@
 export interface Todo {
-  id: number;
-  text: string;
+  _id: number;
+  title: string;
   completed: boolean;
   category: string;
   createdAt?: string;
@@ -8,12 +8,12 @@ export interface Todo {
 }
 
 export interface CreateTodoRequest {
-  text: string;
+  title: string;
   category: string;
 }
 
 export interface UpdateTodoRequest {
-  text?: string;
+  title?: string;
   completed?: boolean;
   category?: string;
 }

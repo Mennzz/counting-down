@@ -14,56 +14,56 @@ app.use(express.json());
 let todos = [
   {
     id: 1,
-    text: "Watch the sunset together from the hill",
+    title: "Watch the sunset together from the hill",
     completed: false,
     category: "Adventure",
     createdAt: new Date().toISOString(),
   },
   {
     id: 2,
-    text: "Cook that pasta recipe we found online",
+    title: "Cook that pasta recipe we found online",
     completed: false,
     category: "Home",
     createdAt: new Date().toISOString(),
   },
   {
     id: 3,
-    text: "Have a picnic in the park",
+    title: "Have a picnic in the park",
     completed: false,
     category: "Date",
     createdAt: new Date().toISOString(),
   },
   {
     id: 4,
-    text: "Visit the art museum downtown",
+    title: "Visit the art museum downtown",
     completed: false,
     category: "Culture",
     createdAt: new Date().toISOString(),
   },
   {
     id: 5,
-    text: "Try that new coffee shop everyone talks about",
+    title: "Try that new coffee shop everyone talks about",
     completed: false,
     category: "Food",
     createdAt: new Date().toISOString(),
   },
   {
     id: 6,
-    text: "Take a weekend trip to the mountains",
+    title: "Take a weekend trip to the mountains",
     completed: false,
     category: "Adventure",
     createdAt: new Date().toISOString(),
   },
   {
     id: 7,
-    text: "Have a movie marathon night with our favorite films",
+    title: "Have a movie marathon night with our favorite films",
     completed: false,
     category: "Home",
     createdAt: new Date().toISOString(),
   },
   {
     id: 8,
-    text: "Learn to dance together",
+    title: "Learn to dance together",
     completed: false,
     category: "Activity",
     createdAt: new Date().toISOString(),
@@ -80,22 +80,26 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // GET /api/todos - Get all todos
 app.get("/api/todos", async (req, res) => {
   await delay(500); // Simulate network delay
-  res.json(todos);
+  res.json({
+    success: true,
+    data: todos,
+    message: "Todos retrieved successfully",
+  });
 });
 
 // POST /api/todos - Create a new todo
 app.post("/api/todos", async (req, res) => {
   await delay(300);
 
-  const { text, category } = req.body;
+  const { title, category } = req.body;
 
-  if (!text || !category) {
-    return res.status(400).json({ error: "Text and category are required" });
+  if (!title || !category) {
+    return res.status(400).json({ error: "title and category are required" });
   }
 
   const newTodo = {
     id: nextId++,
-    text,
+    title,
     category,
     completed: false,
     createdAt: new Date().toISOString(),
@@ -103,7 +107,11 @@ app.post("/api/todos", async (req, res) => {
   };
 
   todos.push(newTodo);
-  res.status(201).json(newTodo);
+  res.status(201).json({
+    success: true,
+    data: newTodo,
+    message: "Todo created successfully",
+  });
 });
 
 // `PUT` /api/todos/:id - Update a todo
@@ -125,7 +133,11 @@ app.put("/api/todos/:id", async (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  res.json(todos[todoIndex]);
+  res.json({
+    success: true,
+    data: todos[todoIndex],
+    message: "Todo updated successfully",
+  });
 });
 
 // DELETE /api/todos/:id - Delete a todo

@@ -12,7 +12,8 @@ class ApiError extends Error {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const errorMessage = await response.text();
+    const data = await response.json();
+    const errorMessage = data.message || `HTTP ${response.status}`;
     throw new ApiError(
       response.status,
       errorMessage || `HTTP ${response.status}`
@@ -25,7 +26,12 @@ export const todoApi = {
   // Get all todos
   getTodos: async (): Promise<Todo[]> => {
     const response = await fetch(`${API_BASE_URL}/todos`);
-    return handleResponse<Todo[]>(response);
+    const data = await handleResponse<{
+      success: boolean;
+      data: Todo[];
+      message: string;
+    }>(response);
+    return data.data;
   },
 
   // Create a new todo
@@ -37,7 +43,12 @@ export const todoApi = {
       },
       body: JSON.stringify(todo),
     });
-    return handleResponse<Todo>(response);
+    const res = await handleResponse<{
+      success: boolean;
+      data: Todo;
+      message: string;
+    }>(response);
+    return res.data;
   },
 
   // Update an existing todo
@@ -49,7 +60,12 @@ export const todoApi = {
       },
       body: JSON.stringify(updates),
     });
-    return handleResponse<Todo>(response);
+    const res = await handleResponse<{
+      success: boolean;
+      data: Todo;
+      message: string;
+    }>(response);
+    return res.data;
   },
 
   // Delete a todo
@@ -58,7 +74,8 @@ export const todoApi = {
       method: "DELETE",
     });
     if (!response.ok) {
-      const errorMessage = await response.text();
+      const data = await response.json();
+      const errorMessage = data.message || `HTTP ${response.status}`;
       throw new ApiError(
         response.status,
         errorMessage || `HTTP ${response.status}`
@@ -66,13 +83,18 @@ export const todoApi = {
     }
   },
 
-  toggleTodo: async (id: number): Promise<Todo> => {
+  toggleTodo: async (_id: number): Promise<Todo> => {
     const response = await fetch(
-      `${API_BASE_URL}/todos/${id}/toggle-completion`,
+      `${API_BASE_URL}/todos/${_id}/toggle-completion`,
       {
         method: "POST",
       }
     );
-    return handleResponse<Todo>(response);
+    const res = await handleResponse<{
+      success: boolean;
+      data: Todo;
+      message: string;
+    }>(response);
+    return res.data;
   },
 };
