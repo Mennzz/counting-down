@@ -1,6 +1,8 @@
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
 
-const API_BASE_URL = "https://countdown-ded22115b668.herokuapp.com/api";
+const API_BASE_URL = import.meta.env.DEV 
+  ? "/api" 
+  : "https://countdown-ded22115b668.herokuapp.com/api";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
