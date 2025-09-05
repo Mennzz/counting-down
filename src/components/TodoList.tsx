@@ -3,12 +3,14 @@ import { List, Heart, Plus, Clock, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
-import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } from "@/hooks/useTodos";
+import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } from "@/hooks/use-todos";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Date");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   // React Query hooks for data fetching and mutations
   const { data: todos = [], isLoading, error } = useTodos();
@@ -49,6 +51,7 @@ const TodoList = () => {
   const deleteTodo = async (_id: number) => {
     try {
       await deleteTodoMutation.mutateAsync(_id);
+      setConfirmDeleteId(null);
     } catch (error) {
       // Error is handled by the mutation hook
       console.error("Failed to delete todo:", error);
@@ -215,18 +218,48 @@ const TodoList = () => {
                 {todo.category}
               </span>
 
-              <button
-                onClick={() => deleteTodo(todo._id)}
-                disabled={deleteTodoMutation.isPending}
-                className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Delete todo"
-              >
-                {deleteTodoMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    onClick={() => setConfirmDeleteId(todo._id)}
+                    disabled={deleteTodoMutation.isPending}
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete todo"
+                  >
+                    {deleteTodoMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </DialogTrigger>
+                {confirmDeleteId === todo._id && (
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Todo</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this todo? This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <button
+                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                        onClick={() => setConfirmDeleteId(null)}
+                        disabled={deleteTodoMutation.isPending}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        onClick={() => deleteTodo(todo._id)}
+                        disabled={deleteTodoMutation.isPending}
+                      >
+                        {deleteTodoMutation.isPending ? "Deleting..." : "Delete"}
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
                 )}
-              </button>
+              </Dialog>
             </div>
           ))}
         </div>

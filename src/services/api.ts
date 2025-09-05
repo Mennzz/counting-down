@@ -1,4 +1,5 @@
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
+import { Message } from "@/types/message";
 
 const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api";
@@ -96,5 +97,50 @@ export const todoApi = {
       message: string;
     }>(response);
     return res.data;
+  },
+};
+
+export const messageApi = {
+  // Get all messages
+  getMessages: async (): Promise<Message[]> => {
+    const response = await fetch(`${API_BASE_URL}/messages`);
+    const data = await handleResponse<{
+      success: boolean;
+      data: Message[];
+      message: string;
+    }>(response);
+    return data.data;
+  },
+
+  // Create a new message
+  createMessage: async (message: any): Promise<Message> => {
+    const response = await fetch(`${API_BASE_URL}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    });
+    const res = await handleResponse<{
+      success: boolean;
+      data: Message;
+      message: string;
+    }>(response);
+    return res.data;
+  },
+
+  // Delete a message
+  deleteMessage: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      const errorMessage = data.message || `HTTP ${response.status}`;
+      throw new ApiError(
+        response.status,
+        errorMessage || `HTTP ${response.status}`
+      );
+    }
   },
 };
