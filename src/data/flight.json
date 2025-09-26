@@ -1,17 +1,8 @@
 {
-    "flightNumber": "D84354",
+    "flightNumber": "D84353",
     "airline": "Norwegian Air",
-    "trackingLink": "https://www.flightradar24.com/D84354",
+    "trackingLink": "https://www.flightradar24.com/D84353",
     "departureAirport": {
-        "name": "Schiphol",
-        "city": "Amsterdam",
-        "shorthand": "AMS",
-        "coords": [
-            4.9041,
-            52.3676
-        ]
-    },
-    "arrivalAirport": {
         "name": "Arlanda",
         "city": "Stockholm",
         "shorthand": "ARN",
@@ -20,6 +11,15 @@
             59.6519
         ]
     },
-    "departureTime": "2025-09-09T21:30:00+02:00",
-    "arrivalTime": "2025-09-09T23:30:00+02:00"
+    "arrivalAirport": {
+        "name": "Schiphol",
+        "city": "Amsterdam",
+        "shorthand": "AMS",
+        "coords": [
+            4.9041,
+            52.3676
+        ]
+    },
+    "departureTime": "2025-10-03T18:50:00+02:00",
+    "arrivalTime": "2025-10-03T20:50:00+02:00"
 }
