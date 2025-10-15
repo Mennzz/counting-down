@@ -86,8 +86,8 @@ const CountdownSection = () => {
         <p className="text-gray-600 font-inter leading-relaxed">
           <strong>Departure date:</strong> {new Date(flightInfo.departureTime).toLocaleDateString()} <br />
           <strong>Flight number:</strong> {flightInfo.flightNumber} <br />
-          <strong>Flight departure:</strong> {flightInfo.departureAirport.city}, {flightInfo.departureAirport.shorthand} at {new Date(flightInfo.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <br />
-          <strong>Flight arrival:</strong> {flightInfo.arrivalAirport.city}, {flightInfo.arrivalAirport.shorthand} at {new Date(flightInfo.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br />
+          <strong>Flight departure:</strong> {flightInfo.departureAirport.city}, {flightInfo.departureAirport.shorthand} at {new Date(flightInfo.departureTime).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })} <br />
+          <strong>Flight arrival:</strong> {flightInfo.arrivalAirport.city}, {flightInfo.arrivalAirport.shorthand} at {new Date(flightInfo.arrivalTime).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })}<br />
           <strong>Tracking Link:</strong> <a href={flightInfo.trackingLink} className="text-rose-500" target="_blank" rel="noopener noreferrer">{flightInfo.trackingLink}</a>
         </p>
       </div>

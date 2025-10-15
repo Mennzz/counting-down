@@ -38,6 +38,54 @@ function getLerpedCoordinates(
   ];
 }
 
+function getGreatCirclePoint(
+  from: [number, number],
+  to: [number, number],
+  t: number
+): [number, number] {
+  // Convert to radians
+  const lat1 = (from[1] * Math.PI) / 180;
+  const lon1 = (from[0] * Math.PI) / 180;
+  const lat2 = (to[1] * Math.PI) / 180;
+  const lon2 = (to[0] * Math.PI) / 180;
+
+  // Calculate great circle distance
+  const deltaLat = lat2 - lat1;
+  const deltaLon = lon2 - lon1;
+  const a = Math.sin(deltaLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  // Interpolate along the great circle
+  const A = Math.sin((1 - t) * c) / Math.sin(c);
+  const B = Math.sin(t * c) / Math.sin(c);
+
+  const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+  const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+  const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+
+  // Convert back to lat/lon
+  const lat = Math.atan2(z, Math.sqrt(x ** 2 + y ** 2));
+  const lon = Math.atan2(y, x);
+
+  return [(lon * 180) / Math.PI, (lat * 180) / Math.PI];
+}
+
+function getRotationAngleAtPoint(
+  from: [number, number],
+  to: [number, number],
+  t: number
+): number {
+  // Get current point and a point slightly ahead to calculate bearing
+  const currentPoint = getGreatCirclePoint(from, to, t);
+  const nextPoint = getGreatCirclePoint(from, to, Math.min(1, t + 0.01));
+
+  const deltaY = nextPoint[1] - currentPoint[1];
+  const deltaX = nextPoint[0] - currentPoint[0];
+  const angleInDegrees = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
+
+  return angleInDegrees;
+}
+
 export default function PlaneFlightAnimation() {
   const getFlightText = () => {
     const hasDeparted = Date.now() > new Date(flightData.departureTime).getTime();
@@ -46,13 +94,6 @@ export default function PlaneFlightAnimation() {
     if (hasLanded) {
       return "Flight has landed";
     } else if (hasDeparted) {
-      // const secondsLeft = Math.max(0, Math.floor((new Date(flightData.arrivalTime).getTime() - Date.now()) / 1000));
-      // const hours = Math.floor(secondsLeft / 3600);
-      // const minutes = Math.floor((secondsLeft % 3600) / 60);
-      // const seconds = secondsLeft % 60;
-      // return `Landing in ${hours.toString().padStart(2, "0")}:${minutes
-      //   .toString()
-      //   .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
       const flightPercentage = lerp01(
         Date.now(),
         new Date(flightData.departureTime).getTime(),
@@ -83,12 +124,18 @@ export default function PlaneFlightAnimation() {
     return () => clearInterval(interval);
   }, []);
 
+  const currentFlightProgress = lerp01(
+    Date.now(),
+    new Date(flightData.departureTime).getTime(),
+    new Date(flightData.arrivalTime).getTime()
+  );
+
   return (
     <div>
       {/* World map */}
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{ scale: 500, center: [20, 55] }}
+        projectionConfig={{ scale: 250, center: [75, 25] }}
         className="w-full h-full rounded-xl overflow-hidden pointer-events-none"
       >
         <Geographies geography={geoUrl}>
@@ -106,6 +153,7 @@ export default function PlaneFlightAnimation() {
         </Geographies>
 
         <Line
+          id="flight-path"
           from={flightData.departureAirport.coords as Point}
           to={flightData.arrivalAirport.coords as Point}
           stroke="#ff0000"
@@ -114,12 +162,21 @@ export default function PlaneFlightAnimation() {
           strokeDasharray="10, 10"
         />
 
-        <Marker coordinates={getLerpedCoordinates(flightData.departureAirport.coords as Point, flightData.arrivalAirport.coords as Point, lerp01(
-          Date.now(),
-          new Date(flightData.departureTime).getTime(),
-          new Date(flightData.arrivalTime).getTime()
-        ))}>
-          <PlaneIcon color="black" />
+        <Marker coordinates={getGreatCirclePoint(
+          flightData.departureAirport.coords as Point, 
+          flightData.arrivalAirport.coords as Point, 
+          currentFlightProgress
+        )}>
+          <PlaneIcon
+            color="black"
+            style={{ 
+              rotate: (45 - getRotationAngleAtPoint(
+                flightData.departureAirport.coords as Point,
+                flightData.arrivalAirport.coords as Point,
+                currentFlightProgress
+              )) + "deg" 
+            }}
+          />
           <text
             x={48}
             y={48}
@@ -144,7 +201,6 @@ export default function PlaneFlightAnimation() {
             >
               {airport.city.toUpperCase()}
             </text>
-
           </Marker>
         ))}
       </ComposableMap>

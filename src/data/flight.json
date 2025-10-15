@@ -1,14 +1,14 @@
 {
-    "flightNumber": "D84353",
-    "airline": "Norwegian Air",
-    "trackingLink": "https://www.flightradar24.com/D84353",
+    "flightNumber": "CX100/CX271",
+    "airline": "Cathay Pacific",
+    "trackingLink": "https://www.flightradar24.com/CX100",
     "departureAirport": {
-        "name": "Arlanda",
-        "city": "Stockholm",
-        "shorthand": "ARN",
+        "name": "Sydney Kingsford Smith",
+        "city": "Sydney",
+        "shorthand": "SYD",
         "coords": [
-            17.9186,
-            59.6519
+            151.1772,
+            -33.9461
         ]
     },
     "arrivalAirport": {
@@ -20,6 +20,6 @@
             52.3676
         ]
     },
-    "departureTime": "2025-10-03T18:50:00+02:00",
-    "arrivalTime": "2025-10-03T20:50:00+02:00"
+    "departureTime": "2025-10-24T15:05:00+11:00", 
+    "arrivalTime": "2025-10-25T06:55:00+02:00" 
 }
