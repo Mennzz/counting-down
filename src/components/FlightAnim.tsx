@@ -86,6 +86,45 @@ function getRotationAngleAtPoint(
   return angleInDegrees;
 }
 
+function calculateFlightPathProjection(
+  departureCoords: Point,
+  arrivalCoords: Point
+): { scale: number; center: [number, number] } {
+  // Calculate bounding box of the flight path
+  const minLon = Math.min(departureCoords[0], arrivalCoords[0]);
+  const maxLon = Math.max(departureCoords[0], arrivalCoords[0]);
+  const minLat = Math.min(departureCoords[1], arrivalCoords[1]);
+  const maxLat = Math.max(departureCoords[1], arrivalCoords[1]);
+  
+  // Calculate center point (midpoint of the flight path)
+  const centerLon = (minLon + maxLon) / 2;
+  const centerLat = (minLat + maxLat) / 2;
+  
+  // Calculate the span of the flight path
+  const lonSpan = maxLon - minLon;
+  const latSpan = maxLat - minLat;
+  
+  // Determine scale based on the larger span
+  // Add some padding (multiply by 1.5) to ensure the flight path doesn't touch edges
+  const maxSpan = Math.max(lonSpan, latSpan);
+  
+  // Base scale calculation - higher scale for smaller spans
+  // Use different formulas for different distance ranges to handle both regional and intercontinental flights
+  let scale;
+  if (maxSpan > 50) {
+    // For very long intercontinental flights, use a lower scale
+    scale = Math.max(150, Math.min(400, 8000 / Math.max(maxSpan, 0.1)));
+  } else {
+    // For regional flights, use the higher scale formula with increased numerator
+    scale = Math.max(600, Math.min(2500, 15000 / Math.max(maxSpan, 0.1)));
+  }
+  
+  return {
+    scale,
+    center: [centerLon, centerLat]
+  };
+}
+
 export default function PlaneFlightAnimation() {
   const getFlightText = () => {
     const hasDeparted = Date.now() > new Date(flightData.departureTime).getTime();
@@ -104,6 +143,12 @@ export default function PlaneFlightAnimation() {
       return "Flight has not departed yet";
     }
   }
+
+  // Calculate dynamic projection config based on flight path
+  const projectionConfig = calculateFlightPathProjection(
+    flightData.departureAirport.coords as Point,
+    flightData.arrivalAirport.coords as Point
+  );
 
   // Make sure component re-renders, we don't actually have to use the value of `t` directly
   const [t, setT] = useState(0);
@@ -135,7 +180,7 @@ export default function PlaneFlightAnimation() {
       {/* World map */}
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{ scale: 250, center: [75, 25] }}
+        projectionConfig={projectionConfig}
         className="w-full h-full rounded-xl overflow-hidden pointer-events-none"
       >
         <Geographies geography={geoUrl}>

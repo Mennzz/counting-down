@@ -1,17 +1,8 @@
 {
-    "flightNumber": "CX100/CX271",
-    "airline": "Cathay Pacific",
-    "trackingLink": "https://www.flightradar24.com/CX100",
+    "flightNumber": "SK1558",
+    "airline": "SAS",
+    "trackingLink": "https://www.flightradar24.com/SK1558",
     "departureAirport": {
-        "name": "Sydney Kingsford Smith",
-        "city": "Sydney",
-        "shorthand": "SYD",
-        "coords": [
-            151.1772,
-            -33.9461
-        ]
-    },
-    "arrivalAirport": {
         "name": "Schiphol",
         "city": "Amsterdam",
         "shorthand": "AMS",
@@ -20,6 +11,15 @@
             52.3676
         ]
     },
-    "departureTime": "2025-10-24T15:05:00+11:00", 
-    "arrivalTime": "2025-10-25T06:55:00+02:00" 
+    "arrivalAirport": {
+        "name": "Stockholm Arlanda",
+        "city": "Stockholm",
+        "shorthand": "ARN",
+        "coords": [
+            17.9214,
+            59.6519
+        ]
+    },
+    "departureTime": "2025-10-29T21:25:00+02:00", 
+    "arrivalTime": "2025-10-29T23:30:00+02:00"
 }
