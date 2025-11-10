@@ -1,8 +1,8 @@
 {
-    "flightNumber": "SK1558",
+    "flightNumber": "KL1226",
     "airline": "SAS",
-    "trackingLink": "https://www.flightradar24.com/SK1558",
-    "departureAirport": {
+    "trackingLink": "https://www.flightradar24.com/KL1226",
+    "arrivalAirport": {
         "name": "Schiphol",
         "city": "Amsterdam",
         "shorthand": "AMS",
@@ -11,7 +11,7 @@
             52.3676
         ]
     },
-    "arrivalAirport": {
+    "departureAirport": {
         "name": "Stockholm Arlanda",
         "city": "Stockholm",
         "shorthand": "ARN",
@@ -20,6 +20,6 @@
             59.6519
         ]
     },
-    "departureTime": "2025-10-29T21:25:00+01:00", 
-    "arrivalTime": "2025-10-29T23:30:00+01:00"
+    "departureTime": "2025-11-13T19:55:00+01:00", 
+    "arrivalTime": "2025-11-13T22:05:00+01:00"
 }
