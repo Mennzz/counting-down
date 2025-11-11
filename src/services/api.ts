@@ -5,7 +5,7 @@ import { List } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.DEV
   ? "/api/v1"
-  : "https://counting-down-fastapi-2ad079e42b08.herokuapp.com/api/v1"; //"https://countdown-ded22115b668.herokuapp.com/api";
+  : "https://counting-down-fastapi-c061e3e79aa6.herokuapp.com/api/v1"; //"https://countdown-ded22115b668.herokuapp.com/api";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
