@@ -31,3 +31,31 @@ export function getRelativeTime(dateString: string | undefined): string {
 
   return "just now";
 }
+
+// Convert object keys from snake_case to camelCase recursively.
+export function snakeToCamel<T = any>(value: any): T {
+  if (value == null) return value;
+  if (Array.isArray(value)) return value.map((v) => snakeToCamel(v)) as any;
+  if (typeof value !== "object") return value;
+
+  const res: any = {};
+  for (const key of Object.keys(value)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    res[camelKey] = snakeToCamel(value[key]);
+  }
+  return res as T;
+}
+
+// Convert object keys from camelCase to snake_case recursively.
+export function camelToSnake<T = any>(value: any): T {
+  if (value == null) return value;
+  if (Array.isArray(value)) return value.map((v) => camelToSnake(v)) as any;
+  if (typeof value !== "object") return value;
+
+  const res: any = {};
+  for (const key of Object.keys(value)) {
+    const snakeKey = key.replace(/([A-Z])/g, (m) => `_${m.toLowerCase()}`);
+    res[snakeKey] = camelToSnake(value[key]);
+  }
+  return res as T;
+}

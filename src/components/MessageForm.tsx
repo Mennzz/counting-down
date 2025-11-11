@@ -12,7 +12,7 @@ const MessageForm = () => {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: messages = [], isLoading, error } = useMessages();
@@ -43,7 +43,7 @@ const MessageForm = () => {
     }
   };
 
-  const deleteMessage = async (id: number) => {
+  const deleteMessage = async (id: string) => {
     try {
       await deleteMessageMutation.mutateAsync(id);
       setConfirmDeleteId(null);
@@ -144,7 +144,7 @@ const MessageForm = () => {
         </h3>
 
         {messages.map((msg) => (
-          <div key={msg._id} className="bg-white/60 backdrop-blur-sm border border-rose-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
+          <div key={msg.id} className="bg-white/60 backdrop-blur-sm border border-rose-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-start space-x-3">
               <div className="w-10 h-10 bg-rose-50 rounded-full flex items-center justify-center border border-rose-100">
                 <Heart className="w-5 h-5 text-rose-400" />
@@ -161,7 +161,7 @@ const MessageForm = () => {
                   <Dialog>
                     <DialogTrigger asChild>
                       <button
-                        onClick={() => setConfirmDeleteId(msg._id)}
+                        onClick={() => setConfirmDeleteId(msg.id)}
                         disabled={deleteMessageMutation.isPending}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete message"
@@ -173,7 +173,7 @@ const MessageForm = () => {
                         )}
                       </button>
                     </DialogTrigger>
-                    {confirmDeleteId === msg._id && (
+                    {confirmDeleteId === msg.id && (
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Delete Message</DialogTitle>
@@ -191,7 +191,7 @@ const MessageForm = () => {
                           </button>
                           <button
                             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                            onClick={() => deleteMessage(msg._id)}
+                            onClick={() => deleteMessage(msg.id)}
                             disabled={deleteMessageMutation.isPending}
                           >
                             {deleteMessageMutation.isPending ? "Deleting..." : "Delete"}
