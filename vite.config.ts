@@ -9,12 +9,12 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/api/v1/': {
-        target: 'https://counting-down-fastapi-2ad079e42b08.herokuapp.com/',
+      "/api/v1": {
+        target: "https://counting-down-fastapi-2ad079e42b08.herokuapp.com/",
         changeOrigin: true,
         secure: true,
-      }
-    }
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean
