@@ -1,6 +1,7 @@
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
 import { Message } from "@/types/message";
 import { snakeToCamel, camelToSnake } from "@/lib/utils";
+import { List } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.DEV 
   ? "/api/v1" 
@@ -87,7 +88,13 @@ export const messageApi = {
   // Get all messages
   getMessages: async (): Promise<Message[]> => {
     const response = await fetch(`${API_BASE_URL}/messages`);
-    return snakeToCamel<Message[]>(await response.json());
+    const messages = snakeToCamel<Message[]>(await response.json());
+    messages.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+    return messages;
   },
 
   // Create a new message
