@@ -10,7 +10,7 @@ import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Date");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // React Query hooks for data fetching and mutations
   const { data: todos = [], isLoading, error } = useTodos();
@@ -36,11 +36,11 @@ const TodoList = () => {
     }
   };
 
-  const toggleTodo = async (_id: number) => {
-    const todo = todos.find(t => t._id === _id);
+  const toggleTodo = async (_id: string) => {
+    const todo = todos.find(t => t.id === _id);
     if (todo) {
       try {
-        await toggleTodoMutation.mutateAsync(todo._id);
+        await toggleTodoMutation.mutateAsync(todo.id);
       } catch (error) {
         // Error is handled by the mutation hook
         console.error("Failed to update todo:", error);
@@ -48,7 +48,7 @@ const TodoList = () => {
     }
   };
 
-  const deleteTodo = async (_id: number) => {
+  const deleteTodo = async (_id: string) => {
     try {
       await deleteTodoMutation.mutateAsync(_id);
       setConfirmDeleteId(null);
@@ -184,14 +184,14 @@ const TodoList = () => {
         <div className="space-y-3">
           {todos.map((todo) => (
             <div
-              key={todo._id}
+              key={todo.id}
               className={`flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 ${todo.completed
                 ? "bg-green-50 border-green-200"
                 : "bg-white border-gray-200 hover:border-rose-200"
                 }`}
             >
               <button
-                onClick={() => toggleTodo(todo._id)}
+                onClick={() => toggleTodo(todo.id)}
                 disabled={updateTodoMutation.isPending}
                 className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${todo.completed
                   ? "bg-green-500 border-green-500"
@@ -221,7 +221,7 @@ const TodoList = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <button
-                    onClick={() => setConfirmDeleteId(todo._id)}
+                    onClick={() => setConfirmDeleteId(todo.id)}
                     disabled={deleteTodoMutation.isPending}
                     className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete todo"
@@ -233,7 +233,7 @@ const TodoList = () => {
                     )}
                   </button>
                 </DialogTrigger>
-                {confirmDeleteId === todo._id && (
+                {confirmDeleteId === todo.id && (
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Delete Todo</DialogTitle>
@@ -251,7 +251,7 @@ const TodoList = () => {
                       </button>
                       <button
                         className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        onClick={() => deleteTodo(todo._id)}
+                        onClick={() => deleteTodo(todo.id)}
                         disabled={deleteTodoMutation.isPending}
                       >
                         {deleteTodoMutation.isPending ? "Deleting..." : "Delete"}

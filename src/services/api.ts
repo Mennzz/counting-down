@@ -1,9 +1,10 @@
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
 import { Message } from "@/types/message";
+import { snakeToCamel, camelToSnake } from "@/lib/utils";
 
 const API_BASE_URL = import.meta.env.DEV 
-  ? "/api" 
-  : "https://countdown-ded22115b668.herokuapp.com/api";
+  ? "/api/v1" 
+  : "https://counting-down-fastapi-2ad079e42b08.herokuapp.com/api/v1/"  //"https://countdown-ded22115b668.herokuapp.com/api";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -27,13 +28,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export const todoApi = {
   // Get all todos
   getTodos: async (): Promise<Todo[]> => {
-    const response = await fetch(`${API_BASE_URL}/todos`);
-    const data = await handleResponse<{
-      success: boolean;
-      data: Todo[];
-      message: string;
-    }>(response);
-    return data.data;
+    const repsonse = await fetch(`${API_BASE_URL}/todos`);
+    return snakeToCamel<Todo[]>(await repsonse.json());
   },
 
   // Create a new todo
@@ -43,14 +39,10 @@ export const todoApi = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(todo),
+      // convert outgoing payload keys to snake_case if backend expects it
+      body: JSON.stringify(camelToSnake(todo)),
     });
-    const res = await handleResponse<{
-      success: boolean;
-      data: Todo;
-      message: string;
-    }>(response);
-    return res.data;
+    return snakeToCamel<Todo>(await response.json());
   },
 
   // Update an existing todo
@@ -60,18 +52,13 @@ export const todoApi = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(camelToSnake(updates)),
     });
-    const res = await handleResponse<{
-      success: boolean;
-      data: Todo;
-      message: string;
-    }>(response);
-    return res.data;
+    return snakeToCamel<Todo>(response.json());
   },
 
   // Delete a todo
-  deleteTodo: async (id: number): Promise<void> => {
+  deleteTodo: async (id: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/todos/${id}`, {
       method: "DELETE",
     });
@@ -85,19 +72,14 @@ export const todoApi = {
     }
   },
 
-  toggleTodo: async (_id: number): Promise<Todo> => {
+  toggleTodo: async (_id: string): Promise<Todo> => {
     const response = await fetch(
       `${API_BASE_URL}/todos/${_id}/toggle-completion`,
       {
         method: "POST",
       }
     );
-    const res = await handleResponse<{
-      success: boolean;
-      data: Todo;
-      message: string;
-    }>(response);
-    return res.data;
+    return snakeToCamel<Todo>(response.json());
   },
 };
 
@@ -105,12 +87,7 @@ export const messageApi = {
   // Get all messages
   getMessages: async (): Promise<Message[]> => {
     const response = await fetch(`${API_BASE_URL}/messages`);
-    const data = await handleResponse<{
-      success: boolean;
-      data: Message[];
-      message: string;
-    }>(response);
-    return data.data;
+    return snakeToCamel<Message[]>(await response.json());
   },
 
   // Create a new message
@@ -122,16 +99,11 @@ export const messageApi = {
       },
       body: JSON.stringify(message),
     });
-    const res = await handleResponse<{
-      success: boolean;
-      data: Message;
-      message: string;
-    }>(response);
-    return res.data;
+    return snakeToCamel<Message>(await response.json());
   },
 
   // Delete a message
-  deleteMessage: async (id: number): Promise<void> => {
+  deleteMessage: async (id: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
       method: "DELETE",
     });
