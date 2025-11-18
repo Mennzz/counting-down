@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getRelativeTime(dateString: string | undefined): string {
+export function getRelativeTimeAsText(dateString: string | undefined): string {
   if (!dateString) return "";
   const date = new Date(dateString);
   const now = new Date();

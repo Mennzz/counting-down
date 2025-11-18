@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMessage, useDeleteMessage, useMessages } from "@/hooks/use-messages";
-import { getRelativeTime } from "@/lib/utils";
+import { getRelativeTimeAsText } from "@/utils/utils";
 
 const MessageForm = () => {
   const [name, setName] = useState("");
@@ -152,7 +152,7 @@ const MessageForm = () => {
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="font-medium text-gray-800">{msg.sender ? msg.sender : "Anonymous"}</span>
-                  <span className="text-xs text-gray-500">{getRelativeTime(msg.createdAt)}</span>
+                  <span className="text-xs text-gray-500">{getRelativeTimeAsText(msg.createdAt)}</span>
                 </div>
                 <p className="text-gray-600 font-inter leading-relaxed">
                   {msg.message}

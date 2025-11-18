@@ -8,34 +8,16 @@ import {
   Point,
 } from "react-simple-maps";
 
-type Airport = {
-  name: string;
-  city: string;
-  shorthand: string;
-  coords: Point;
-};
-
-import flightData from "../data/flight.json";
 import { useEffect, useState } from "react";
-
-const airports = [flightData.departureAirport, flightData.arrivalAirport] as Airport[];
+import { Flight } from "@/types/flight";
+import { getCoordsFromAirport as getPointFromAirport } from "@/utils/flight";
+import { Airport } from "@/types/airport";
 
 const geoUrl =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 function lerp01(value: number, min: number, max: number): number {
   return Math.max(0, Math.min(1, (value - min) / (max - min)));
-}
-
-function getLerpedCoordinates(
-  from: [number, number],
-  to: [number, number],
-  t: number
-): [number, number] {
-  return [
-    from[0] + (to[0] - from[0]) * t,
-    from[1] + (to[1] - from[1]) * t,
-  ];
 }
 
 function getGreatCirclePoint(
@@ -95,19 +77,19 @@ function calculateFlightPathProjection(
   const maxLon = Math.max(departureCoords[0], arrivalCoords[0]);
   const minLat = Math.min(departureCoords[1], arrivalCoords[1]);
   const maxLat = Math.max(departureCoords[1], arrivalCoords[1]);
-  
+
   // Calculate center point (midpoint of the flight path)
   const centerLon = (minLon + maxLon) / 2;
   const centerLat = (minLat + maxLat) / 2;
-  
+
   // Calculate the span of the flight path
   const lonSpan = maxLon - minLon;
   const latSpan = maxLat - minLat;
-  
+
   // Determine scale based on the larger span
   // Add some padding (multiply by 1.5) to ensure the flight path doesn't touch edges
   const maxSpan = Math.max(lonSpan, latSpan);
-  
+
   // Base scale calculation - higher scale for smaller spans
   // Use different formulas for different distance ranges to handle both regional and intercontinental flights
   let scale;
@@ -118,43 +100,53 @@ function calculateFlightPathProjection(
     // For regional flights, use the higher scale formula with increased numerator
     scale = Math.max(600, Math.min(2500, 15000 / Math.max(maxSpan, 0.1)));
   }
-  
+
   return {
     scale,
     center: [centerLon, centerLat]
   };
 }
 
-export default function PlaneFlightAnimation() {
-  const getFlightText = () => {
-    const hasDeparted = Date.now() > new Date(flightData.departureTime).getTime();
-    const hasLanded = Date.now() > new Date(flightData.arrivalTime).getTime();
+const getFlightText = (flight: Flight): string => {
+  const departureTime = new Date(flight.departureAt).getTime();
+  const arrivalTime = new Date(flight.arrivalAt).getTime();
 
-    if (hasLanded) {
-      return "Flight has landed";
-    } else if (hasDeparted) {
-      const flightPercentage = lerp01(
-        Date.now(),
-        new Date(flightData.departureTime).getTime(),
-        new Date(flightData.arrivalTime).getTime()
-      );
-      return `Flight in progress: ${Math.round(flightPercentage * 100)}%`;
-    } else {
-      return "Flight has not departed yet";
-    }
+  const hasDeparted = Date.now() > departureTime
+  const hasLanded = Date.now() > arrivalTime;
+
+  if (hasLanded) {
+    return "Flight has landed";
+  } else if (hasDeparted) {
+    const flightPercentage = lerp01(
+      Date.now(),
+      departureTime,
+      arrivalTime
+    );
+    return `Flight in progress: ${Math.round(flightPercentage * 100)}%`;
+  } else {
+    return "Flight has not departed yet";
   }
+}
 
-  // Calculate dynamic projection config based on flight path
-  const projectionConfig = calculateFlightPathProjection(
-    flightData.departureAirport.coords as Point,
-    flightData.arrivalAirport.coords as Point
-  );
+const currentFlightProgress = (departureAt: Date, arrivalAt: Date): number => lerp01(
+  Date.now(),
+  departureAt.getTime(),
+  arrivalAt.getTime()
+);
 
+export interface FlightAnimProps {
+  flight: Flight;
+}
+
+export default function PlaneFlightAnimation({ flight }: FlightAnimProps) {
   // Make sure component re-renders, we don't actually have to use the value of `t` directly
   const [t, setT] = useState(0);
+
+  const airports = [flight.departureAirport, flight.arrivalAirport] as Airport[];
+
   useEffect(() => {
-    const arrivalTime = new Date(flightData.arrivalTime).getTime();
-    const departureTime = new Date(flightData.departureTime).getTime();
+    const arrivalTime = new Date(flight.arrivalAt).getTime();
+    const departureTime = new Date(flight.departureAt).getTime();
     const duration = arrivalTime - departureTime;
     const updateT = () => {
       const now = Date.now();
@@ -169,18 +161,17 @@ export default function PlaneFlightAnimation() {
     return () => clearInterval(interval);
   }, []);
 
-  const currentFlightProgress = lerp01(
-    Date.now(),
-    new Date(flightData.departureTime).getTime(),
-    new Date(flightData.arrivalTime).getTime()
-  );
-
   return (
     <div>
       {/* World map */}
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={projectionConfig}
+        projectionConfig={
+          calculateFlightPathProjection(
+            getPointFromAirport(flight.departureAirport),
+            getPointFromAirport(flight.arrivalAirport)
+          )
+        }
         className="w-full h-full rounded-xl overflow-hidden pointer-events-none"
       >
         <Geographies geography={geoUrl}>
@@ -199,8 +190,8 @@ export default function PlaneFlightAnimation() {
 
         <Line
           id="flight-path"
-          from={flightData.departureAirport.coords as Point}
-          to={flightData.arrivalAirport.coords as Point}
+          from={getPointFromAirport(flight.arrivalAirport)}
+          to={getPointFromAirport(flight.departureAirport)}
           stroke="#ff0000"
           strokeWidth={3}
           strokeLinecap="round"
@@ -208,18 +199,18 @@ export default function PlaneFlightAnimation() {
         />
 
         <Marker coordinates={getGreatCirclePoint(
-          flightData.departureAirport.coords as Point, 
-          flightData.arrivalAirport.coords as Point, 
-          currentFlightProgress
+          getPointFromAirport(flight.departureAirport),
+          getPointFromAirport(flight.arrivalAirport),
+          currentFlightProgress(new Date(flight.departureAt), new Date(flight.arrivalAt))
         )}>
           <PlaneIcon
             color="black"
-            style={{ 
+            style={{
               rotate: (45 - getRotationAngleAtPoint(
-                flightData.departureAirport.coords as Point,
-                flightData.arrivalAirport.coords as Point,
-                currentFlightProgress
-              )) + "deg" 
+                getPointFromAirport(flight.departureAirport),
+                getPointFromAirport(flight.arrivalAirport),
+                currentFlightProgress(new Date(flight.departureAt), new Date(flight.arrivalAt))
+              )) + "deg"
             }}
           />
           <text
@@ -228,12 +219,12 @@ export default function PlaneFlightAnimation() {
             textAnchor="middle"
             style={{ fontFamily: "Inter", fill: "#000", fontSize: "0.8rem" }}
           >
-            {getFlightText()}
+            {getFlightText(flight)}
           </text>
         </Marker>
 
         {airports.map((airport) => (
-          <Marker key={airport.shorthand} coordinates={airport.coords}>
+          <Marker key={airport.icao} coordinates={getPointFromAirport(airport)}>
             <circle
               r={10}
               fill="#dc2626"

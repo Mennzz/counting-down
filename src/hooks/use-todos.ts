@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { todoApi } from "@/services/api";
+import { todoApi } from "@/services/todo";
 import { UpdateTodoRequest } from "@/types/todo";
 import { useToast } from "@/hooks/use-toast";
 
