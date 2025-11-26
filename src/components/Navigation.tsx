@@ -1,5 +1,5 @@
 
-import { Heart, Image, MessageSquare, List, Clock } from "lucide-react";
+import { Heart, Image, MessageSquare, List, Clock, Calendar } from "lucide-react";
 
 interface NavigationProps {
   activeSection: string;
@@ -13,6 +13,7 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
     { id: "todo", label: "Together List", icon: List },
     { id: "stats", label: "Our Stats", icon: Heart },
     { id: "messages", label: "Messages", icon: MessageSquare },
+    { id: "advent", label: "Advent", icon: Calendar },
   ];
 
   return (
