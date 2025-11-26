@@ -1,5 +1,5 @@
 
-import { Heart, Image, MessageSquare, List, Clock, Gift } from "lucide-react";
+import { Heart, Image, MessageSquare, List, Clock } from "lucide-react";
 
 interface NavigationProps {
   activeSection: string;
