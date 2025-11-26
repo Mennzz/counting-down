@@ -1,16 +1,26 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CountdownSection from "../components/CountdownSection";
 import PhotoGallery from "../components/PhotoGallery";
-import LoveNotes from "../components/LoveNotes";
 import TodoList from "../components/TodoList";
 import RelationshipStats from "../components/RelationshipStats";
 import MessageForm from "../components/MessageForm";
-import PlaylistSection from "../components/PlaylistSection";
 import Navigation from "../components/Navigation";
+import { Login } from "./Login";
+import { isSessionValid } from "@/utils/cookies";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("countdown");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated on component mount
+    setIsAuthenticated(isSessionValid());
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
 
   const renderSection = () => {
     switch (activeSection) {
@@ -18,21 +28,23 @@ const Index = () => {
         return <CountdownSection />;
       case "gallery":
         return <PhotoGallery />;
-      case "notes":
-        return <LoveNotes />;
       case "todo":
         return <TodoList />;
       case "stats":
         return <RelationshipStats />;
       case "messages":
         return <MessageForm />;
-      case "playlist":
-        return <PlaylistSection />;
       default:
         return <CountdownSection />;
     }
   };
 
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // If authenticated, show main content
   return (
     <div className="min-h-screen romantic-gradient">
       <Navigation activeSection={activeSection} setActiveSection={setActiveSection} />
