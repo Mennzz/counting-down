@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,108 @@ const dayNumberColors = [
   "text-green-700", "text-green-700", "text-white", "text-white", "text-green-700",
   "text-white", "text-white", "text-red-700", "text-red-700", "text-white"
 ];
+
+type DayPreviewGalleryProps = {
+  entries: AdventEntry[];
+  imageCache: Record<string, string>;
+};
+
+// Renders a day preview collage with every advent image for that day.
+const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProps) => {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="absolute inset-0 grid auto-rows-fr grid-cols-2 gap-1 p-2 opacity-60 pointer-events-none">
+      {entries.map((entry) => {
+        const cacheKey = entry.imageKey;
+        const imageUrl = cacheKey ? imageCache[cacheKey] : undefined;
+
+        return (
+          <div
+            key={entry.id}
+            className="relative h-full w-full overflow-hidden rounded-md border border-white/20 bg-black/20"
+          >
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={entry.title ? `${entry.title} preview` : `Advent preview`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-2xl text-white/80">
+                {typeEmojis[entry.type]}
+              </div>
+            )}
+            <div className="absolute top-1 right-1 text-lg drop-shadow-sm">
+              {typeEmojis[entry.type]}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+type DayDialogGalleryProps = {
+  entries: AdventEntry[];
+  imageCache: Record<string, string>;
+};
+
+const DayDialogGallery = ({ entries, imageCache }: DayDialogGalleryProps) => {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Carousel className="w-full" opts={{ align: "start", loop: entries.length > 1 }}>
+        <CarouselContent>
+          {entries.map((entry) => {
+            const cacheKey = entry.imageKey;
+            const imageUrl = cacheKey ? imageCache[cacheKey] : undefined;
+
+            return (
+              <CarouselItem key={entry.id}>
+                <div className="space-y-3">
+                  <div className="relative w-full overflow-hidden rounded-lg bg-black/60">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={entry.title ? `${entry.title}` : "Advent surprise"}
+                        className="w-full h-auto max-h-[60vh] object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-[40vh] items-center justify-center text-6xl text-white/80">
+                        {typeEmojis[entry.type]}
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 rounded-full bg-black/60 px-3 py-1 text-lg text-white shadow">
+                      {typeEmojis[entry.type]}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className={`inline-block px-3 py-1 rounded-full text-sm ${typeStyles[entry.type]}`}>
+                      {typeEmojis[entry.type]} {entry.type}
+                    </div>
+                    <h3 className="text-xl font-semibold">{entry.title || "Untitled surprise"}</h3>
+                    {entry.description && (
+                      <p className="text-muted-foreground">{entry.description}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      From {entry.uploadedBy} on {new Date(entry.uploadedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+      </Carousel>
+    </div>
+  );
+};
 
 export const AdventCalendarNew = () => {
   const [advents, setAdvents] = useState<AdventEntry[]>([]);
@@ -75,11 +178,11 @@ export const AdventCalendarNew = () => {
   const loadAdvents = async () => {
     try {
       setIsLoading(true);
-      const data = await getAdventsByMe();
-      setAdvents(data);
+      const all_advents = await getAdventsByMe();
+      setAdvents(all_advents);
 
       // Load images for all advents
-      for (const advent of data) {
+      for (const advent of all_advents) {
         if (advent.imageKey && !imageCache[advent.imageKey]) {
           try {
             const blob = await fetchImageWithAuth(advent.imageKey);
@@ -98,8 +201,8 @@ export const AdventCalendarNew = () => {
     }
   };
 
-  const getAdventForDay = (day: number): AdventEntry | undefined => {
-    return advents.find(a => a.day === day);
+  const getAdventsForDay = (day: number): AdventEntry[] => {
+    return advents.filter(a => a.day === day);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -326,9 +429,18 @@ export const AdventCalendarNew = () => {
 
       <div className="grid grid-cols-5 gap-3 max-w-6xl mx-auto">
         {Array.from({ length: 25 }, (_, i) => i + 1).map((day) => {
-          const advent = getAdventForDay(day);
+          const adventsForDay = getAdventsForDay(day);
           const bgColor = dayColors[day - 1];
           const numColor = dayNumberColors[day - 1];
+          const isDayOpened = openedDays.has(day);
+          const hasGallery = isDayOpened && adventsForDay.length > 0;
+          const firstEntry = adventsForDay[0];
+          const titleSuffix =
+            hasGallery && firstEntry
+              ? adventsForDay.length === 1
+                ? ` - ${typeEmojis[firstEntry.type]} ${firstEntry.title}`
+                : ` - ${adventsForDay.length} surprises`
+              : "";
 
           return (
             <Dialog key={day}>
@@ -338,17 +450,8 @@ export const AdventCalendarNew = () => {
                   onClick={() => openDayDialog(day)}
                 >
                   <div className="h-full flex flex-col items-center justify-center p-4 relative">
-                    {advent && openedDays.has(day) && imageCache[advent.imageKey] ? (
-                      <>
-                        <img
-                          src={imageCache[advent.imageKey]}
-                          alt={`Day ${day}`}
-                          className="absolute inset-0 w-full h-full object-cover opacity-40"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <span className="text-2xl">{typeEmojis[advent.type]}</span>
-                        </div>
-                      </>
+                    {hasGallery ? (
+                      <DayPreviewGallery entries={adventsForDay} imageCache={imageCache} />
                     ) : (
                       <Gift className="w-12 h-12 text-white/50 mb-2" />
                     )}
@@ -361,40 +464,20 @@ export const AdventCalendarNew = () => {
 
               <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
-                  <DialogTitle>
-                    Day {day}
-                    {advent && openedDays.has(day) && ` - ${typeEmojis[advent.type]} ${advent.title}`}
-                  </DialogTitle>
+                  <DialogTitle>Day {day}{titleSuffix}</DialogTitle>
                   <DialogDescription>
-                    {!advent
+                    {adventsForDay.length === 0
                       ? "No surprise yet for this day"
                       : openedDays.has(day)
-                      ? "A surprise from your loved one"
+                      ? adventsForDay.length + " surprise(s) from your loved one"
                       : "A gift is waiting to be opened!"}
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 overflow-y-auto flex-1">
-                  {advent ? (
-                    openedDays.has(day) && imageCache[advent.imageKey] ? (
-                      // Gift has been opened - show full content
-                      <div className="space-y-4">
-                        <img
-                          src={imageCache[advent.imageKey]}
-                          alt={`Day ${day}`}
-                          className="w-full h-auto max-h-[60vh] object-contain rounded-lg"
-                        />
-                        <div className={`inline-block px-3 py-1 rounded-full text-sm ${typeStyles[advent.type]}`}>
-                          {typeEmojis[advent.type]} {advent.type}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{advent.title}</h3>
-                          <p className="text-muted-foreground mt-1">{advent.description}</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          From {advent.uploadedBy} on {new Date(advent.uploadedAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                  {adventsForDay.length > 0 ? (
+                    openedDays.has(day) ? (
+                      <DayDialogGallery entries={adventsForDay} imageCache={imageCache} />
                     ) : (
                       // Gift exists but not opened - show wrapped gift
                       <div className="text-center py-12">
