@@ -8,7 +8,7 @@ import MessageForm from "../components/MessageForm";
 import Navigation from "../components/Navigation";
 import { Login } from "./Login";
 import { isSessionValid } from "@/utils/cookies";
-import AdventSection from "@/components/AdventSection";
+import { AdventCalendarNew } from "@/components/AdventCalendar";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("countdown");
@@ -36,7 +36,7 @@ const Index = () => {
       case "messages":
         return <MessageForm />;
       case "advent":
-        return <AdventSection />;
+        return <AdventCalendarNew />;
       default:
         return <CountdownSection />;
     }

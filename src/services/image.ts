@@ -10,7 +10,7 @@ export const uploadImage = async (key: string, file: File): Promise<void> => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/image/${encodeURIComponent(key)}`, {
+  const response = await fetch(`${API_BASE_URL}/images/${encodeURIComponent(key)}`, {
     method: "POST",
     headers: {
       "X-Session-Id": sessionId,
@@ -22,7 +22,7 @@ export const uploadImage = async (key: string, file: File): Promise<void> => {
     const errorData = await response.json().catch(() => ({}));
     throw new ApiError(
       response.status,
-      errorData.detail || "Failed to upload image"
+      errorData.detail || "Failed to upload images"
     );
   }
 };
@@ -33,7 +33,7 @@ export const getImageUrl = (key: string): string => {
     throw new Error("No active session");
   }
 
-  return `${API_BASE_URL}/image/${encodeURIComponent(key)}`;
+  return `${API_BASE_URL}/images/${encodeURIComponent(key)}`;
 };
 
 export const fetchImageWithAuth = async (key: string): Promise<Blob> => {
@@ -42,7 +42,7 @@ export const fetchImageWithAuth = async (key: string): Promise<Blob> => {
     throw new Error("No active session");
   }
 
-  const response = await fetch(`${API_BASE_URL}/image/${encodeURIComponent(key)}`, {
+  const response = await fetch(`${API_BASE_URL}/images/${encodeURIComponent(key)}`, {
     method: "GET",
     headers: {
       "X-Session-Id": sessionId,
@@ -51,9 +51,9 @@ export const fetchImageWithAuth = async (key: string): Promise<Blob> => {
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new ApiError(404, "Image not found");
+      throw new ApiError(404, "images not found");
     }
-    throw new ApiError(response.status, "Failed to fetch image");
+    throw new ApiError(response.status, "Failed to fetch images");
   }
 
   return await response.blob();
