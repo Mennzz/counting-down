@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Gift, Upload, Trash2 } from "lucide-react";
+import { Gift, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getAdventsForMe, createAdvent, deleteAdvent, getAdventsByMe } from "@/services/advent";
 import { fetchImageWithAuth } from "@/services/image";
@@ -364,17 +364,19 @@ export const AdventCalendarNew = () => {
           </div>
         </div>
 
+        <Loader2 className="w-8 h-8 text-rose-500 animate-spin mx-auto my-20" />
+
         {/* Progress Bar */}
-        <div className="max-w-4xl mx-auto mb-8">
+        {/* <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center justify-between mb-2">
             <Skeleton className="h-4 w-48 rounded" />
             <Skeleton className="h-4 w-12 rounded" />
           </div>
           <Skeleton className="h-3 w-full rounded" />
-        </div>
+        </div> */}
 
         {/* Advent Calendar */}
-        <div className="grid grid-cols-5 gap-3 max-w-6xl mx-auto">
+        {/* <div className="grid grid-cols-5 gap-3 max-w-6xl mx-auto">
           {Array.from({ length: 25 }).map((_, idx) => (
             <div
               key={idx}
@@ -385,7 +387,7 @@ export const AdventCalendarNew = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     );
   }
