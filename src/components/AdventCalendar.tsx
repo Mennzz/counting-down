@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Gift, List, Loader2, Upload } from "lucide-react";
+<<<<<<< HEAD
+import { Gift, Upload, Trash2 } from "lucide-react";
+=======
+import { Gift, Upload, Trash2 } from "lucide-react";
+>>>>>>> 5be06a3 (added locks and delete function for by_me mode)
 import { toast } from "sonner";
 import { getAdventsForMe, createAdvent, deleteAdvent, getAdventsByMe } from "@/services/advent";
 import { fetchImageWithAuth } from "@/services/image";
@@ -47,6 +51,33 @@ const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProps) => {
     return null;
   }
 
+  // Single entry - show full image
+  if (entries.length === 1) {
+    const entry = entries[0];
+    const cacheKey = entry.imageKey;
+    const imageUrl = cacheKey ? imageCache[cacheKey] : undefined;
+
+    return (
+      <div className="absolute inset-0 opacity-40 pointer-events-none">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={entry.title ? `${entry.title} preview` : `Advent preview`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-4xl text-white/80">
+            {typeEmojis[entry.type]}
+          </div>
+        )}
+        <div className="absolute top-2 right-2 text-2xl drop-shadow-sm">
+          {typeEmojis[entry.type]}
+        </div>
+      </div>
+    );
+  }
+
+  // Multiple entries - show grid
   return (
     <div className="absolute inset-0 grid auto-rows-fr grid-cols-2 gap-1 p-2 opacity-60 pointer-events-none">
       {entries.map((entry) => {
@@ -82,9 +113,11 @@ const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProps) => {
 type DayDialogGalleryProps = {
   entries: AdventEntry[];
   imageCache: Record<string, string>;
+  viewMode?: "for-me" | "by-me";
+  onDelete?: (advent: AdventEntry) => void;
 };
 
-const DayDialogGallery = ({ entries, imageCache }: DayDialogGalleryProps) => {
+const DayDialogGallery = ({ entries, imageCache, viewMode, onDelete }: DayDialogGalleryProps) => {
   if (entries.length === 0) {
     return null;
   }
@@ -127,6 +160,17 @@ const DayDialogGallery = ({ entries, imageCache }: DayDialogGalleryProps) => {
                     <p className="text-xs text-muted-foreground">
                       From {entry.uploadedBy} on {new Date(entry.uploadedAt).toLocaleDateString()}
                     </p>
+                    {viewMode === "by-me" && onDelete && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => onDelete(entry)}
+                        className="mt-2"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CarouselItem>
@@ -146,6 +190,7 @@ export const AdventCalendarNew = () => {
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
   const [openedDays, setOpenedDays] = useState<Set<number>>(new Set());
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"for-me" | "by-me">("for-me");
   const userType = getUserType();
 
   // Upload form state
@@ -174,12 +219,14 @@ export const AdventCalendarNew = () => {
 
   useEffect(() => {
     loadAdvents();
-  }, []);
+  }, [viewMode]);
 
   const loadAdvents = async () => {
     try {
       setIsLoading(true);
-      const all_advents = await getAdventsByMe();
+      const all_advents = viewMode === "for-me"
+        ? await getAdventsForMe()
+        : await getAdventsByMe();
       setAdvents(all_advents);
 
       // Load images for all advents
@@ -289,6 +336,24 @@ export const AdventCalendarNew = () => {
     // Don't automatically mark as opened - user must click "Open Gift" button
   };
 
+  // Check if a day is unlocked based on current date (only for "for-me" mode)
+  const isDayUnlocked = (day: number): boolean => {
+    if (viewMode === "by-me") return true; // Always unlocked in "by-me" mode
+
+    const today = new Date();
+    const currentMonth = today.getMonth(); // 0-indexed (11 = December)
+    const currentDay = today.getDate();
+
+    // Check if we're in December
+    if (currentMonth !== 11) {
+      // Not December - all days locked
+      return false;
+    }
+
+    // In December - unlock days up to current date
+    return day <= currentDay;
+  };
+
   const progressPercentage = Math.round((openedDays.size / 25) * 100);
 
   if (isLoading) {
@@ -335,8 +400,31 @@ export const AdventCalendarNew = () => {
         <h1 className="text-5xl font-bold mb-2 text-red-600">🎄 Advent Calendar 🎄</h1>
         <p className="text-muted-foreground">25 days of surprises leading to Christmas!</p>
 
-        {/* Upload Button */}
-        <div className="mt-4">
+        {/* View Toggle and Upload Button */}
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-white">
+            <button
+              onClick={() => setViewMode("for-me")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                viewMode === "for-me"
+                  ? "bg-rose-500 text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              For Me
+            </button>
+            <button
+              onClick={() => setViewMode("by-me")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                viewMode === "by-me"
+                  ? "bg-rose-500 text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              By Me
+            </button>
+          </div>
+
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="bg-green-600 hover:bg-green-700">
@@ -465,6 +553,7 @@ export const AdventCalendarNew = () => {
           const numColor = dayNumberColors[day - 1];
           const isDayOpened = openedDays.has(day);
           const hasGallery = isDayOpened && adventsForDay.length > 0;
+          const isUnlocked = isDayUnlocked(day);
           const firstEntry = adventsForDay[0];
           const titleSuffix =
             hasGallery && firstEntry
@@ -477,10 +566,17 @@ export const AdventCalendarNew = () => {
             <Dialog key={day}>
               <DialogTrigger asChild>
                 <Card
-                  className={`cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 aspect-square relative overflow-hidden ${bgColor}`}
+                  className={`cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 aspect-square relative overflow-hidden ${bgColor} ${
+                    !isUnlocked ? 'opacity-50 grayscale' : ''
+                  }`}
                   onClick={() => openDayDialog(day)}
                 >
                   <div className="h-full flex flex-col items-center justify-center p-4 relative">
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/30 z-20">
+                        <div className="text-6xl">💌</div>
+                      </div>
+                    )}
                     {hasGallery ? (
                       <DayPreviewGallery entries={adventsForDay} imageCache={imageCache} />
                     ) : (
@@ -497,7 +593,9 @@ export const AdventCalendarNew = () => {
                 <DialogHeader>
                   <DialogTitle>Day {day}{titleSuffix}</DialogTitle>
                   <DialogDescription>
-                    {adventsForDay.length === 0
+                    {!isUnlocked
+                      ? "This day is locked until December " + day
+                      : adventsForDay.length === 0
                       ? "No surprise yet for this day"
                       : openedDays.has(day)
                         ? adventsForDay.length + " surprise(s) from your loved one"
@@ -506,9 +604,23 @@ export const AdventCalendarNew = () => {
                 </DialogHeader>
 
                 <div className="space-y-4 overflow-y-auto flex-1">
-                  {adventsForDay.length > 0 ? (
+                  {!isUnlocked ? (
+                    // Day is locked
+                    <div className="text-center py-12">
+                      <div className="text-8xl mb-4"> 💌 </div>
+                      <h3 className="text-xl font-semibold mb-2">This day is locked but I love you!</h3>
+                      <p className="text-muted-foreground mb-2">
+                        Come back on December {day} to open this surprise BIBI
+                      </p>
+                    </div>
+                  ) : adventsForDay.length > 0 ? (
                     openedDays.has(day) ? (
-                      <DayDialogGallery entries={adventsForDay} imageCache={imageCache} />
+                      <DayDialogGallery
+                        entries={adventsForDay}
+                        imageCache={imageCache}
+                        viewMode={viewMode}
+                        onDelete={handleDelete}
+                      />
                     ) : (
                       // Gift exists but not opened - show wrapped gift
                       <div className="text-center py-12">
