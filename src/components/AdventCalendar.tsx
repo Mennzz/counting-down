@@ -8,11 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-<<<<<<< HEAD
 import { Gift, Upload, Trash2 } from "lucide-react";
-=======
-import { Gift, Upload, Trash2 } from "lucide-react";
->>>>>>> 5be06a3 (added locks and delete function for by_me mode)
 import { toast } from "sonner";
 import { getAdventsForMe, createAdvent, deleteAdvent, getAdventsByMe } from "@/services/advent";
 import { fetchImageWithAuth } from "@/services/image";
