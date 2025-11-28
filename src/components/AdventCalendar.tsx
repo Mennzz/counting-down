@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Gift, Upload } from "lucide-react";
+import { Gift, List, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { getAdventsForMe, createAdvent, deleteAdvent, getAdventsByMe } from "@/services/advent";
 import { fetchImageWithAuth } from "@/services/image";
@@ -16,6 +16,7 @@ import { getUserType } from "@/utils/cookies";
 import { ApiError } from "@/services/api";
 import type { AdventEntry, AdventType, CreateAdventEntry } from "@/types/advent";
 import { typeStyles, typeEmojis } from "@/types/advent";
+import { Skeleton } from "./ui/skeleton";
 
 // Festive color schemes for each day matching the design
 const dayColors = [
@@ -292,8 +293,38 @@ export const AdventCalendarNew = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg">Loading advent calendar...</p>
+      <div className="container mx-auto p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-2 text-red-600">🎄 Advent Calendar 🎄</h1>
+          <p className="text-muted-foreground">25 days of surprises leading to Christmas!</p>
+
+          <div className="mt-4 flex justify-center">
+            <Skeleton className="h-10 w-56 rounded" />
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <Skeleton className="h-4 w-48 rounded" />
+            <Skeleton className="h-4 w-12 rounded" />
+          </div>
+          <Skeleton className="h-3 w-full rounded" />
+        </div>
+
+        {/* Advent Calendar */}
+        <div className="grid grid-cols-5 gap-3 max-w-6xl mx-auto">
+          {Array.from({ length: 25 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="aspect-square relative overflow-hidden rounded-md bg-white/5 flex items-center justify-center p-4"
+            >
+              <div className="w-full h-full flex flex-col items-center justify-center">
+                <Skeleton className="h-64 w-64 mb-3 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -469,8 +500,8 @@ export const AdventCalendarNew = () => {
                     {adventsForDay.length === 0
                       ? "No surprise yet for this day"
                       : openedDays.has(day)
-                      ? adventsForDay.length + " surprise(s) from your loved one"
-                      : "A gift is waiting to be opened!"}
+                        ? adventsForDay.length + " surprise(s) from your loved one"
+                        : "A gift is waiting to be opened!"}
                   </DialogDescription>
                 </DialogHeader>
 

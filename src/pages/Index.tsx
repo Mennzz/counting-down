@@ -31,8 +31,8 @@ const Index = () => {
         return <PhotoGallery />;
       case "todo":
         return <TodoList />;
-      case "stats":
-        return <RelationshipStats />;
+      // case "stats":
+      //   return <RelationshipStats />;
       case "messages":
         return <MessageForm />;
       case "advent":
