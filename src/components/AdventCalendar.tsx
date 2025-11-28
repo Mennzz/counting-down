@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Gift, Upload, Trash2 } from "lucide-react";
+import { Gift, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getAdventsForMe, createAdvent, deleteAdvent, getAdventsByMe } from "@/services/advent";
 import { fetchImageWithAuth } from "@/services/image";
@@ -16,6 +16,7 @@ import { getUserType } from "@/utils/cookies";
 import { ApiError } from "@/services/api";
 import type { AdventEntry, AdventType, CreateAdventEntry } from "@/types/advent";
 import { typeStyles, typeEmojis } from "@/types/advent";
+import { Skeleton } from "./ui/skeleton";
 
 // Festive color schemes for each day matching the design
 const dayColors = [
@@ -38,6 +39,7 @@ const dayNumberColors = [
 type DayPreviewGalleryProps = {
   entries: AdventEntry[];
   imageCache: Record<string, string>;
+  viewMode?: "for-me" | "by-me";
 };
 
 // Renders a day preview collage with every advent image for that day.
@@ -326,11 +328,6 @@ export const AdventCalendarNew = () => {
     }
   };
 
-  const openDayDialog = (day: number) => {
-    setSelectedDay(day);
-    // Don't automatically mark as opened - user must click "Open Gift" button
-  };
-
   // Check if a day is unlocked based on current date (only for "for-me" mode)
   const isDayUnlocked = (day: number): boolean => {
     if (viewMode === "by-me") return true; // Always unlocked in "by-me" mode
@@ -353,8 +350,40 @@ export const AdventCalendarNew = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg">Loading advent calendar...</p>
+      <div className="container mx-auto p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-2 text-red-600">🎄 Advent Calendar 🎄</h1>
+          <p className="text-muted-foreground">25 days of surprises leading to Christmas!</p>
+
+          <div className="mt-4 flex justify-center">
+            <Skeleton className="h-10 w-56 rounded" />
+          </div>
+        </div>
+
+        <Loader2 className="w-8 h-8 text-rose-500 animate-spin mx-auto my-20" />
+
+        {/* Progress Bar */}
+        {/* <div className="max-w-4xl mx-auto mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <Skeleton className="h-4 w-48 rounded" />
+            <Skeleton className="h-4 w-12 rounded" />
+          </div>
+          <Skeleton className="h-3 w-full rounded" />
+        </div> */}
+
+        {/* Advent Calendar */}
+        {/* <div className="grid grid-cols-5 gap-3 max-w-6xl mx-auto">
+          {Array.from({ length: 25 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="aspect-square relative overflow-hidden rounded-md bg-white/5 flex items-center justify-center p-4"
+            >
+              <div className="w-full h-full flex flex-col items-center justify-center">
+                <Skeleton className="h-64 w-64 mb-3 rounded" />
+              </div>
+            </div>
+          ))}
+        </div> */}
       </div>
     );
   }
@@ -517,7 +546,8 @@ export const AdventCalendarNew = () => {
           const bgColor = dayColors[day - 1];
           const numColor = dayNumberColors[day - 1];
           const isDayOpened = openedDays.has(day);
-          const hasGallery = isDayOpened && adventsForDay.length > 0;
+          const isOpened = viewMode === "by-me" || isDayOpened;
+          const hasGallery = isOpened && adventsForDay.length > 0;
           const isUnlocked = isDayUnlocked(day);
           const firstEntry = adventsForDay[0];
           const titleSuffix =
@@ -534,7 +564,6 @@ export const AdventCalendarNew = () => {
                   className={`cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 aspect-square relative overflow-hidden ${bgColor} ${
                     !isUnlocked ? 'opacity-50 grayscale' : ''
                   }`}
-                  onClick={() => openDayDialog(day)}
                 >
                   <div className="h-full flex flex-col items-center justify-center p-4 relative">
                     {!isUnlocked && (
@@ -562,9 +591,9 @@ export const AdventCalendarNew = () => {
                       ? "This day is locked until December " + day
                       : adventsForDay.length === 0
                       ? "No surprise yet for this day"
-                      : openedDays.has(day)
-                      ? adventsForDay.length + " surprise(s) from your loved one"
-                      : "A gift is waiting to be opened!"}
+                      : isOpened
+                        ? adventsForDay.length + " surprise(s) from your loved one"
+                        : "A gift is waiting to be opened!"}
                   </DialogDescription>
                 </DialogHeader>
 
@@ -579,7 +608,7 @@ export const AdventCalendarNew = () => {
                       </p>
                     </div>
                   ) : adventsForDay.length > 0 ? (
-                    openedDays.has(day) ? (
+                    isOpened ? (
                       <DayDialogGallery
                         entries={adventsForDay}
                         imageCache={imageCache}
@@ -596,7 +625,14 @@ export const AdventCalendarNew = () => {
                           size="lg"
                           className="bg-red-600 hover:bg-red-700"
                           onClick={() => {
-                            setOpenedDays(prev => new Set(prev).add(day));
+                            setOpenedDays((prev) => {
+                              if (viewMode !== "for-me") {
+                                return prev;
+                              }
+                              const next = new Set(prev);
+                              next.add(day);
+                              return next;
+                            });
                           }}
                         >
                           <Gift className="w-5 h-5 mr-2" />

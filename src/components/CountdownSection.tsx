@@ -7,7 +7,7 @@ import { useNextFlight } from "@/hooks/use-flights";
 import { getFlightInProgress, getTrackingLinkFromFlightNumber } from "@/utils/flight";
 
 const CountdownSection = () => {
-  const {data: nextFlight, isLoading, error} = useNextFlight();
+  const { data: nextFlight, isLoading, error } = useNextFlight();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -66,11 +66,11 @@ const CountdownSection = () => {
         </div>
       )}
 
-      { nextFlight === null && !isLoading && !error && (
+      {nextFlight === null && !isLoading && !error && (
         <div className="text-center py-10">
           <p className="text-gray-600">No upcoming flights scheduled 😭 Book one now to be back together soon!</p>
         </div>
-      ) }
+      )}
 
       {nextFlight && !isLoading && !error && (
         <div className="space-y-8">
@@ -117,7 +117,22 @@ const CountdownSection = () => {
               <strong>Flight number:</strong> {nextFlight.flightNumber} <br />
               <strong>Flight departure:</strong> {nextFlight.departureAirport?.city}, {nextFlight.departureAirport?.iata} at {new Date(nextFlight.departureAt).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })} <br />
               <strong>Flight arrival:</strong> {nextFlight.arrivalAirport?.city}, {nextFlight.arrivalAirport?.iata} at {new Date(nextFlight.arrivalAt).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })}<br />
-              <strong>Tracking Link:</strong> <a href={flightTrackingLink} className="text-rose-500" target="_blank" rel="noopener noreferrer">{flightTrackingLink}</a>
+              {flightTrackingLink ? (
+                <>
+                  <strong>Tracking Link:</strong>{' '}
+                  <a
+                    href={flightTrackingLink}
+                    className="text-rose-500 break-all hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={flightTrackingLink}
+                  >
+                    {flightTrackingLink}
+                  </a>
+                </>
+              ) : (
+                <><strong>Tracking Link:</strong> <span className="text-gray-500">N/A</span></>
+              )}
             </p>
           </div>
         </div>)
