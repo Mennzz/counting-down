@@ -39,6 +39,7 @@ const dayNumberColors = [
 type DayPreviewGalleryProps = {
   entries: AdventEntry[];
   imageCache: Record<string, string>;
+  viewMode?: "for-me" | "by-me";
 };
 
 // Renders a day preview collage with every advent image for that day.
@@ -327,11 +328,6 @@ export const AdventCalendarNew = () => {
     }
   };
 
-  const openDayDialog = (day: number) => {
-    setSelectedDay(day);
-    // Don't automatically mark as opened - user must click "Open Gift" button
-  };
-
   // Check if a day is unlocked based on current date (only for "for-me" mode)
   const isDayUnlocked = (day: number): boolean => {
     if (viewMode === "by-me") return true; // Always unlocked in "by-me" mode
@@ -550,7 +546,8 @@ export const AdventCalendarNew = () => {
           const bgColor = dayColors[day - 1];
           const numColor = dayNumberColors[day - 1];
           const isDayOpened = openedDays.has(day);
-          const hasGallery = isDayOpened && adventsForDay.length > 0;
+          const isOpened = viewMode === "by-me" || isDayOpened;
+          const hasGallery = isOpened && adventsForDay.length > 0;
           const isUnlocked = isDayUnlocked(day);
           const firstEntry = adventsForDay[0];
           const titleSuffix =
@@ -567,7 +564,6 @@ export const AdventCalendarNew = () => {
                   className={`cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 aspect-square relative overflow-hidden ${bgColor} ${
                     !isUnlocked ? 'opacity-50 grayscale' : ''
                   }`}
-                  onClick={() => openDayDialog(day)}
                 >
                   <div className="h-full flex flex-col items-center justify-center p-4 relative">
                     {!isUnlocked && (
@@ -595,7 +591,7 @@ export const AdventCalendarNew = () => {
                       ? "This day is locked until December " + day
                       : adventsForDay.length === 0
                       ? "No surprise yet for this day"
-                      : openedDays.has(day)
+                      : isOpened
                         ? adventsForDay.length + " surprise(s) from your loved one"
                         : "A gift is waiting to be opened!"}
                   </DialogDescription>
@@ -612,7 +608,7 @@ export const AdventCalendarNew = () => {
                       </p>
                     </div>
                   ) : adventsForDay.length > 0 ? (
-                    openedDays.has(day) ? (
+                    isOpened ? (
                       <DayDialogGallery
                         entries={adventsForDay}
                         imageCache={imageCache}
@@ -629,7 +625,14 @@ export const AdventCalendarNew = () => {
                           size="lg"
                           className="bg-red-600 hover:bg-red-700"
                           onClick={() => {
-                            setOpenedDays(prev => new Set(prev).add(day));
+                            setOpenedDays((prev) => {
+                              if (viewMode !== "for-me") {
+                                return prev;
+                              }
+                              const next = new Set(prev);
+                              next.add(day);
+                              return next;
+                            });
                           }}
                         >
                           <Gift className="w-5 h-5 mr-2" />
