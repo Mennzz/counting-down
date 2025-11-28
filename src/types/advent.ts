@@ -7,6 +7,16 @@ export interface AdventDay {
   type: AdventType;
   actor?: string;
   imageData?: string;
+  imageUrl?: string;
+}
+
+export interface AdventDayCreate {
+  day: number;
+  title: string;
+  description: string;
+  type: AdventType;
+  actor?: string;
+  image: File;
 }
 
 export const typeStyles: Record<AdventType, string> = {
