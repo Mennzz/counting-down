@@ -182,23 +182,7 @@ export const AdventCalendarNew = () => {
 
   const openDayDialog = (day: number) => {
     setSelectedDay(day);
-    const existingAdvent = getAdventForDay(day);
-
-    // Mark day as opened
-    if (existingAdvent && !openedDays.has(day)) {
-      setOpenedDays(prev => new Set(prev).add(day));
-    }
-
-    if (existingAdvent) {
-      setTitle(existingAdvent.title);
-      setDescription(existingAdvent.description);
-      setType(existingAdvent.type);
-    } else {
-      setTitle("");
-      setDescription("");
-      setType("cute");
-      setSelectedFile(null);
-    }
+    // Don't automatically mark as opened - user must click "Open Gift" button
   };
 
   const progressPercentage = Math.round((openedDays.size / 25) * 100);
@@ -227,7 +211,7 @@ export const AdventCalendarNew = () => {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Upload Advent Gift</DialogTitle>
                 <DialogDescription>
@@ -235,7 +219,7 @@ export const AdventCalendarNew = () => {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4">
+              <div className="space-y-4 overflow-y-auto flex-1">
                 <div className="space-y-2">
                   <Label htmlFor="upload-day">Day (1-25)</Label>
                   <Select value={uploadDay.toString()} onValueChange={(v) => setUploadDay(parseInt(v))}>
@@ -354,7 +338,7 @@ export const AdventCalendarNew = () => {
                   onClick={() => openDayDialog(day)}
                 >
                   <div className="h-full flex flex-col items-center justify-center p-4 relative">
-                    {advent && imageCache[advent.imageKey] ? (
+                    {advent && openedDays.has(day) && imageCache[advent.imageKey] ? (
                       <>
                         <img
                           src={imageCache[advent.imageKey]}
@@ -375,34 +359,62 @@ export const AdventCalendarNew = () => {
                 </Card>
               </DialogTrigger>
 
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
-                  <DialogTitle>Day {day} {advent && `- ${typeEmojis[advent.type]} ${advent.title}`}</DialogTitle>
+                  <DialogTitle>
+                    Day {day}
+                    {advent && openedDays.has(day) && ` - ${typeEmojis[advent.type]} ${advent.title}`}
+                  </DialogTitle>
                   <DialogDescription>
-                    {advent ? "A surprise from your loved one" : "No surprise yet for this day"}
+                    {!advent
+                      ? "No surprise yet for this day"
+                      : openedDays.has(day)
+                      ? "A surprise from your loved one"
+                      : "A gift is waiting to be opened!"}
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                  {advent && imageCache[advent.imageKey] ? (
-                    <div className="space-y-4">
-                      <img
-                        src={imageCache[advent.imageKey]}
-                        alt={`Day ${day}`}
-                        className="w-full h-auto rounded-lg"
-                      />
-                      <div className={`inline-block px-3 py-1 rounded-full text-sm ${typeStyles[advent.type]}`}>
-                        {typeEmojis[advent.type]} {advent.type}
+                <div className="space-y-4 overflow-y-auto flex-1">
+                  {advent ? (
+                    openedDays.has(day) && imageCache[advent.imageKey] ? (
+                      // Gift has been opened - show full content
+                      <div className="space-y-4">
+                        <img
+                          src={imageCache[advent.imageKey]}
+                          alt={`Day ${day}`}
+                          className="w-full h-auto max-h-[60vh] object-contain rounded-lg"
+                        />
+                        <div className={`inline-block px-3 py-1 rounded-full text-sm ${typeStyles[advent.type]}`}>
+                          {typeEmojis[advent.type]} {advent.type}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{advent.title}</h3>
+                          <p className="text-muted-foreground mt-1">{advent.description}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          From {advent.uploadedBy} on {new Date(advent.uploadedAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{advent.title}</h3>
-                        <p className="text-muted-foreground mt-1">{advent.description}</p>
+                    ) : (
+                      // Gift exists but not opened - show wrapped gift
+                      <div className="text-center py-12">
+                        <Gift className="w-24 h-24 text-red-600 mx-auto mb-4 animate-pulse" />
+                        <h3 className="text-xl font-semibold mb-2">A gift is waiting for you!</h3>
+                        <p className="text-muted-foreground mb-6">Click below to open your surprise</p>
+                        <Button
+                          size="lg"
+                          className="bg-red-600 hover:bg-red-700"
+                          onClick={() => {
+                            setOpenedDays(prev => new Set(prev).add(day));
+                          }}
+                        >
+                          <Gift className="w-5 h-5 mr-2" />
+                          Open Gift
+                        </Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        From {advent.uploadedBy} on {new Date(advent.uploadedAt).toLocaleDateString()}
-                      </p>
-                    </div>
+                    )
                   ) : (
+                    // No gift uploaded yet
                     <div className="text-center py-12">
                       <Gift className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">No surprise uploaded yet for Day {day}</p>
