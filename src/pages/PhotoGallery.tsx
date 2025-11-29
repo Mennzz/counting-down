@@ -1,8 +1,6 @@
-
-import { Image, Heart } from "lucide-react";
+import { Heart, Image } from "lucide-react";
 
 const PhotoGallery = () => {
-  // Personal photos from your uploads
   const photos = [
     {
       id: 1,

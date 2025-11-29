@@ -1,18 +1,16 @@
 import { useState } from "react";
-import { List, Heart, Plus, Clock, Loader2, Trash2 } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-
 import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } from "@/hooks/use-todos";
+import { Clock, Heart, List, Loader2, Plus, Trash2 } from "lucide-react";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Date");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // React Query hooks for data fetching and mutations
   const { data: todos = [], isLoading, error } = useTodos();
   const createTodoMutation = useCreateTodo();
   const updateTodoMutation = useUpdateTodo();
@@ -30,19 +28,17 @@ const TodoList = () => {
         });
         setNewTodo("");
       } catch (error) {
-        // Error is handled by the mutation hook
         console.error("Failed to create todo:", error);
       }
     }
   };
 
   const toggleTodo = async (_id: string) => {
-    const todo = todos.find(t => t.id === _id);
+    const todo = todos.find((t) => t.id === _id);
     if (todo) {
       try {
         await toggleTodoMutation.mutateAsync(todo.id);
       } catch (error) {
-        // Error is handled by the mutation hook
         console.error("Failed to update todo:", error);
       }
     }
@@ -53,7 +49,6 @@ const TodoList = () => {
       await deleteTodoMutation.mutateAsync(_id);
       setConfirmDeleteId(null);
     } catch (error) {
-      // Error is handled by the mutation hook
       console.error("Failed to delete todo:", error);
     }
   };
@@ -70,9 +65,8 @@ const TodoList = () => {
     return colors[category as keyof typeof colors] || "bg-gray-50 text-gray-600 border-gray-200";
   };
 
-  const completedCount = todos.filter(todo => todo.completed).length;
+  const completedCount = todos.filter((todo) => todo.completed).length;
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
@@ -101,7 +95,6 @@ const TodoList = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
@@ -167,7 +160,7 @@ const TodoList = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
           >
-            {categories.map(category => (
+            {categories.map((category) => (
               <option key={category} value={category}>{category}</option>
             ))}
           </select>

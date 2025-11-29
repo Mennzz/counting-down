@@ -1,6 +1,5 @@
-
-import { Heart, Image, MessageSquare, List, Clock, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Clock, Gift, Heart, Image, List, MessageSquare } from "lucide-react";
 
 interface NavigationProps {
   activeSection: string;

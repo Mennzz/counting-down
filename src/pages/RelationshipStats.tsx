@@ -1,5 +1,4 @@
-
-import { Heart, Clock, MessageSquare, Calendar, Image, Music } from "lucide-react";
+import { Calendar, Clock, Heart, Image, MessageSquare, Music } from "lucide-react";
 
 const RelationshipStats = () => {
   const stats = [
