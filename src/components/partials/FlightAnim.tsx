@@ -152,14 +152,15 @@ export default function PlaneFlightAnimation({ flight }: FlightAnimProps) {
       const now = Date.now();
       if (now >= arrivalTime) {
         setT(1);
-      } else if (now >= departureTime) {
+      } else if (now >= departureTime && duration > 0) {
         setT((now - departureTime) / duration);
       }
     };
 
+    updateT();
     const interval = setInterval(updateT, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [flight.arrivalAt, flight.departureAt]);
 
   return (
     <div>

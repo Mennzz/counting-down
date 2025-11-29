@@ -10,10 +10,10 @@ export const setCookie = (name: string, value: string, expiresAt?: string) => {
 
 export const getCookie = (name: string): string | null => {
   const nameEQ = name + "=";
-  const cookies = document.cookie.split(';');
+  const cookies = document.cookie.split(";");
 
   for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i].trim();
+    const cookie = cookies[i].trim();
     if (cookie.indexOf(nameEQ) === 0) {
       return decodeURIComponent(cookie.substring(nameEQ.length));
     }
@@ -27,15 +27,15 @@ export const deleteCookie = (name: string) => {
 };
 
 export const getSessionId = (): string | null => {
-  return getCookie('session_id');
+  return getCookie("session_id");
 };
 
 export const getSessionExpiry = (): string | null => {
-  return getCookie('session_expires_at');
+  return getCookie("session_expires_at");
 };
 
 export const getUserType = (): string | null => {
-  return getCookie('user_type');
+  return getCookie("user_type");
 };
 
 export const isSessionValid = (): boolean => {
@@ -53,7 +53,7 @@ export const isSessionValid = (): boolean => {
 };
 
 export const clearSession = () => {
-  deleteCookie('session_id');
-  deleteCookie('session_expires_at');
-  deleteCookie('user_type');
+  deleteCookie("session_id");
+  deleteCookie("session_expires_at");
+  deleteCookie("user_type");
 };

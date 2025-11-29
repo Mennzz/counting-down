@@ -1,5 +1,6 @@
 
 import { Heart, Image, MessageSquare, List, Clock, Gift } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface NavigationProps {
   activeSection: string;
@@ -20,10 +21,14 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
     <nav className="sticky top-0 z-50 glass-effect border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
-          <div className="flex items-center space-x-2">
+          <Link
+            to="/"
+            onClick={() => setActiveSection("countdown")}
+            className="flex items-center space-x-2 transition-opacity hover:opacity-90"
+          >
             <span className="text-2xl">🦄</span>
             <h1 className="text-2xl font-playfair font-semibold text-rose-600">BIBI Dairy</h1>
-          </div>
+          </Link>
           
           <div className="hidden md:flex items-center space-x-1">
             {sections.map((section) => {

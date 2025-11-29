@@ -1,16 +1,25 @@
 import { snakeToCamel } from "./utils";
 import { toUtcISOString } from "./time";
 
+type Normalizable = unknown;
+
 // Walk a value and normalize any date-like fields to UTC ISO strings
-function normalizeDates(value: any): any {
-    if (Array.isArray(value)) return value.map(normalizeDates);
+function normalizeDates(value: Normalizable): Normalizable {
+    if (Array.isArray(value)) {
+        return value.map((item) => normalizeDates(item));
+    }
+
     if (value && typeof value === "object") {
-        const out: any = {};
-        for (const [k, v] of Object.entries(value)) {
-            out[k] = normalizeDatesField(k, v);
+        const input = value as Record<string, Normalizable>;
+        const out: Record<string, Normalizable> = {};
+
+        for (const [key, val] of Object.entries(input)) {
+            out[key] = normalizeDatesField(key, val);
         }
+
         return out;
     }
+
     return value;
 }
 
@@ -25,12 +34,15 @@ function isLikelyDateString(val: unknown): val is string {
     return (
         /\d{4}-\d{2}-\d{2}/.test(val) || // 2025-11-18
         /T\d{2}:\d{2}:\d{2}/.test(val) || // T time
-        /^[0-9]{10,13}$/.test(val) // epoch seconds/ms
+        /^[0-9]{10,13}$/.test(val)
     );
 }
 
-function normalizeDatesField(key: string, val: any): any {
-    if (Array.isArray(val) || (val && typeof val === "object")) return normalizeDates(val);
+function normalizeDatesField(key: string, val: Normalizable): Normalizable {
+    if (Array.isArray(val) || (val && typeof val === "object")) {
+        return normalizeDates(val);
+    }
+
     if (isLikelyDateKey(key) && (isLikelyDateString(val) || typeof val === "number")) {
         try {
             return toUtcISOString(val);
@@ -38,13 +50,14 @@ function normalizeDatesField(key: string, val: any): any {
             return val;
         }
     }
+
     return val;
 }
 
-export async function processResponse<T = any>(data: any): Promise<T> {
+export async function processResponse<T = unknown>(data: unknown): Promise<T> {
     // Convert snake_case → camelCase first
-    const camel = snakeToCamel<T>(data);
+    const camelData = snakeToCamel(data) as Normalizable;
     // Normalize date-like fields to UTC ISO strings
-    const normalized = normalizeDates(camel);
+    const normalized = normalizeDates(camelData);
     return normalized as T;
 }

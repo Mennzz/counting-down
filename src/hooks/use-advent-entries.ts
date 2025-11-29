@@ -26,11 +26,14 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    const cacheRef = imageCacheRef;
+    const loadedKeysRef = loadedImageKeysRef;
+
     return () => {
       isMountedRef.current = false;
-      Object.values(imageCacheRef.current).forEach((url) => revokeObjectURL(url));
-      imageCacheRef.current = {};
-      loadedImageKeysRef.current.clear();
+      Object.values(cacheRef.current).forEach((url) => revokeObjectURL(url));
+      cacheRef.current = {};
+      loadedKeysRef.current.clear();
     };
   }, []);
 

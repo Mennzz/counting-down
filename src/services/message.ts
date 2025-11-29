@@ -1,4 +1,4 @@
-import { Message } from "@/types/message";
+import { CreateMessageRequest, Message } from "@/types/message";
 import { API_BASE_URL, ApiError } from "./api";
 import { processResponse } from "@/utils/api";
 
@@ -21,7 +21,7 @@ export const messageApi = {
   },
 
   // Create a new message
-  createMessage: async (message: any): Promise<Message> => {
+  createMessage: async (message: CreateMessageRequest): Promise<Message> => {
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: "POST",
       headers: {

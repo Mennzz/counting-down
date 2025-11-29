@@ -33,29 +33,45 @@ export function getRelativeTimeAsText(dateString: string | undefined): string {
 }
 
 // Convert object keys from snake_case to camelCase recursively.
-export function snakeToCamel<T = any>(value: any): T {
-  if (value == null) return value;
-  if (Array.isArray(value)) return value.map((v) => snakeToCamel(v)) as any;
-  if (typeof value !== "object") return value;
+type UnknownRecord = Record<string, unknown>;
 
-  const res: any = {};
-  for (const key of Object.keys(value)) {
-    const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-    res[camelKey] = snakeToCamel(value[key]);
+export function snakeToCamel<T = unknown>(value: unknown): T {
+  if (value == null || typeof value !== "object") {
+    return value as T;
   }
-  return res as T;
+
+  if (Array.isArray(value)) {
+    return value.map((item) => snakeToCamel(item)) as unknown as T;
+  }
+
+  const input = value as UnknownRecord;
+  const result: UnknownRecord = {};
+
+  for (const [key, val] of Object.entries(input)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    result[camelKey] = snakeToCamel(val);
+  }
+
+  return result as T;
 }
 
 // Convert object keys from camelCase to snake_case recursively.
-export function camelToSnake<T = any>(value: any): T {
-  if (value == null) return value;
-  if (Array.isArray(value)) return value.map((v) => camelToSnake(v)) as any;
-  if (typeof value !== "object") return value;
-
-  const res: any = {};
-  for (const key of Object.keys(value)) {
-    const snakeKey = key.replace(/([A-Z])/g, (m) => `_${m.toLowerCase()}`);
-    res[snakeKey] = camelToSnake(value[key]);
+export function camelToSnake<T = unknown>(value: unknown): T {
+  if (value == null || typeof value !== "object") {
+    return value as T;
   }
-  return res as T;
+
+  if (Array.isArray(value)) {
+    return value.map((item) => camelToSnake(item)) as unknown as T;
+  }
+
+  const input = value as UnknownRecord;
+  const result: UnknownRecord = {};
+
+  for (const [key, val] of Object.entries(input)) {
+    const snakeKey = key.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`);
+    result[snakeKey] = camelToSnake(val);
+  }
+
+  return result as T;
 }

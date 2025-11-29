@@ -15,7 +15,7 @@ export function parseApiDateUtc(value: string | number | Date): Date {
 	const s = value.trim();
 
 	// Already has a timezone (Z or ±hh:mm) → Date will parse as UTC instant
-	if (/[zZ]|[+\-]\d{2}:\d{2}$/.test(s)) return new Date(s);
+	if (/[zZ]|[+-]\d{2}:\d{2}$/.test(s)) return new Date(s);
 
 	// Date-only (assume midnight UTC)
 	const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -32,7 +32,7 @@ export function parseApiDateUtc(value: string | number | Date): Date {
 	if (m2) return new Date(`${m2[1]}T${m2[2]}Z`);
 
 	// Fallback: if no timezone present, assume UTC by appending Z safely
-	if (!/[zZ]|[+\-]\d{2}:\d{2}$/.test(s)) {
+	if (!/[zZ]|[+-]\d{2}:\d{2}$/.test(s)) {
 		const normalized = s.replace(" ", "T");
 		return new Date(`${normalized}Z`);
 	}
