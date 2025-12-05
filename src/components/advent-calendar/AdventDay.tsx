@@ -104,7 +104,7 @@ export const AdventDay = ({
               />
             ) : (
               <div className="py-12 text-center">
-                <Gift className="mb-4 h-24 w-24 animate-pulse text-red-600" />
+                <Gift className="mx-auto mb-4 h-24 w-24 animate-pulse text-red-600" />
                 <h3 className="mb-2 text-xl font-semibold">A gift is waiting for you!</h3>
                 <p className="mb-6 text-muted-foreground">Click below to open your surprise</p>
                 <Button size="lg" className="bg-red-600 hover:bg-red-700" onClick={onOpenGift}>
