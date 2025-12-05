@@ -13,6 +13,7 @@ type AdventDayProps = {
   day: number;
   entries: AdventEntry[];
   imageCache: Record<string, string>;
+  thumbnailCache: Record<string, string>;
   backgroundClass: string;
   numberClass: string;
   isUnlocked: boolean;
@@ -20,19 +21,22 @@ type AdventDayProps = {
   viewMode: "for-me" | "by-me";
   onOpenGift: () => void;
   onDeleteEntry: (advent: AdventEntry) => void | Promise<void>;
+  ensureImageLoaded: (key: string | null | undefined) => Promise<string | null>;
 };
 
 export const AdventDay = ({
   day,
   entries,
   imageCache,
+  thumbnailCache,
   backgroundClass,
   numberClass,
   isUnlocked,
   isOpened,
   viewMode,
   onOpenGift,
-  onDeleteEntry
+  onDeleteEntry,
+  ensureImageLoaded
 }: AdventDayProps) => {
   const hasGallery = isOpened && entries.length > 0;
   const firstEntry = entries[0];
@@ -56,7 +60,7 @@ export const AdventDay = ({
               </div>
             )}
             {hasGallery ? (
-              <DayPreviewGallery entries={entries} imageCache={imageCache} />
+              <DayPreviewGallery entries={entries} previewCache={thumbnailCache} />
             ) : (
               <Gift className="mb-2 h-12 w-12 text-white/50" />
             )}
@@ -96,6 +100,7 @@ export const AdventDay = ({
                 imageCache={imageCache}
                 viewMode={viewMode}
                 onDelete={onDeleteEntry}
+                ensureImageLoaded={ensureImageLoaded}
               />
             ) : (
               <div className="py-12 text-center">

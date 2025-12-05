@@ -58,3 +58,54 @@ export const fetchImageWithAuth = async (key: string): Promise<Blob> => {
 
   return await response.blob();
 };
+
+export const requestThumbnailGeneration = async (key: string): Promise<void> => {
+  const sessionId = getSessionId();
+  if (!sessionId) {
+    throw new Error("No active session");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/images/thumbnail/${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: {
+      "X-Session-Id": sessionId,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      response.status,
+      errorData.detail || "Failed to request thumbnail generation"
+    );
+  }
+};
+
+export const fetchThumbnailWithAuth = async (key: string): Promise<Blob> => {
+  const sessionId = getSessionId();
+  if (!sessionId) {
+    throw new Error("No active session");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/images/thumbnail/${encodeURIComponent(key)}`, {
+    method: "GET",
+    headers: {
+      "X-Session-Id": sessionId,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      try {
+        await requestThumbnailGeneration(key);
+      } catch (generationError) {
+        console.error("Failed to request thumbnail generation:", generationError);
+      }
+
+      throw new ApiError(404, "thumbnail pending generation");
+    }
+    throw new ApiError(response.status, "Failed to fetch thumbnail");
+  }
+
+  return await response.blob();
+};

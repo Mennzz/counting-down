@@ -11,10 +11,10 @@ const renderPlaceholder = (emoji: string, sizeClass: string) => (
 
 type DayPreviewGalleryProps = {
   entries: AdventEntry[];
-  imageCache: Record<string, string>;
+  previewCache: Record<string, string>;
 };
 
-export const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProps) => {
+export const DayPreviewGallery = ({ entries, previewCache }: DayPreviewGalleryProps) => {
   if (entries.length === 0) {
     return null;
   }
@@ -22,7 +22,7 @@ export const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProp
   if (entries.length === 1) {
     const entry = entries[0];
     const cacheKey = entry.imageKey;
-    const imageUrl = cacheKey ? imageCache[cacheKey] : undefined;
+    const imageUrl = cacheKey ? previewCache[cacheKey] : undefined;
 
     return (
       <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -48,7 +48,7 @@ export const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProp
     <div className="pointer-events-none absolute inset-0 grid auto-rows-fr grid-cols-2 gap-1 p-2 opacity-60">
       {entries.map((entry) => {
         const cacheKey = entry.imageKey;
-        const imageUrl = cacheKey ? imageCache[cacheKey] : undefined;
+        const imageUrl = cacheKey ? previewCache[cacheKey] : undefined;
 
         return (
           <div

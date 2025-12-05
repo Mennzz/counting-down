@@ -24,11 +24,13 @@ export const AdventCalendarNew = () => {
 
   const {
     imageCache,
+    thumbnailCache,
     isLoading,
     loadAdvents,
     deleteEntry,
     getEntriesForDay,
-    loadError
+    loadError,
+    ensureFullImageLoaded
   } = useAdventEntries(viewMode);
 
   const { openedDays, markDayOpened } = useAdventOpenedDays();
@@ -173,6 +175,8 @@ export const AdventCalendarNew = () => {
               day={day}
               entries={entries}
               imageCache={imageCache}
+              thumbnailCache={thumbnailCache}
+              ensureImageLoaded={ensureFullImageLoaded}
               backgroundClass={dayColors[day - 1]}
               numberClass={dayNumberColors[day - 1]}
               isUnlocked={isUnlocked}

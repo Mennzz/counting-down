@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,34 @@ type DayDialogGalleryProps = {
   imageCache: Record<string, string>;
   viewMode?: "for-me" | "by-me";
   onDelete?: (advent: AdventEntry) => void;
+  ensureImageLoaded?: (key: string | null | undefined) => Promise<string | null>;
 };
 
-export const DayDialogGallery = ({ entries, imageCache, viewMode, onDelete }: DayDialogGalleryProps) => {
+export const DayDialogGallery = ({ entries, imageCache, viewMode, onDelete, ensureImageLoaded }: DayDialogGalleryProps) => {
+  const requestedKeysRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (!ensureImageLoaded) {
+      return;
+    }
+
+    entries.forEach((entry) => {
+      const key = entry.imageKey;
+      if (!key || imageCache[key]) {
+        return;
+      }
+
+      if (requestedKeysRef.current.has(key)) {
+        return;
+      }
+
+      requestedKeysRef.current.add(key);
+      void ensureImageLoaded(key).catch(() => {
+        requestedKeysRef.current.delete(key);
+      });
+    });
+  }, [entries, imageCache, ensureImageLoaded]);
+
   if (entries.length === 0) {
     return null;
   }
