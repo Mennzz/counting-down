@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from "react";
-import CountdownSection from "../components/CountdownSection";
-import PhotoGallery from "../components/PhotoGallery";
-import TodoList from "../components/TodoList";
-import RelationshipStats from "../components/RelationshipStats";
-import MessageForm from "../components/MessageForm";
-import Navigation from "../components/Navigation";
+import Navigation from "./Navigation";
+import CountdownSection from "./CountdownSection";
+import { AdventCalendarNew } from "./AdventCalendar";
+import PhotoGallery from "./PhotoGallery";
+import TodoList from "./TodoList";
+import RelationshipStats from "./RelationshipStats";
+import MessageForm from "./MessageForm";
 import { Login } from "./Login";
 import { isSessionValid } from "@/utils/cookies";
-import { AdventCalendarNew } from "@/components/AdventCalendar";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("countdown");
@@ -31,8 +31,8 @@ const Index = () => {
         return <PhotoGallery />;
       case "todo":
         return <TodoList />;
-      // case "stats":
-      //   return <RelationshipStats />;
+      case "stats":
+        return <RelationshipStats />;
       case "messages":
         return <MessageForm />;
       case "advent":

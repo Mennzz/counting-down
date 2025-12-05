@@ -1,8 +1,7 @@
+import { useEffect, useState } from "react";
+import { Calendar, Heart, Loader2 } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { Heart, Calendar, Loader2 } from "lucide-react";
-import PlaneFlightAnimation from "./partials/FlightAnim";
-
+import PlaneFlightAnimation from "@/components/partials/FlightAnim";
 import { useNextFlight } from "@/hooks/use-flights";
 import { getFlightInProgress, getTrackingLinkFromFlightNumber } from "@/utils/flight";
 
@@ -16,7 +15,7 @@ const CountdownSection = () => {
     seconds: 0,
   });
 
-  const flightTrackingLink = nextFlight ? getTrackingLinkFromFlightNumber(nextFlight.flightNumber, getFlightInProgress(nextFlight)) : '';
+  const flightTrackingLink = nextFlight ? getTrackingLinkFromFlightNumber(nextFlight.flightNumber, getFlightInProgress(nextFlight)) : "";
 
   useEffect(() => {
     const targetDate = new Date(nextFlight?.arrivalAt || null);
@@ -76,7 +75,7 @@ const CountdownSection = () => {
         <div className="space-y-8">
           <div className="space-y-4">
             <p className="text-xl text-gray-600 font-inter">
-              Counting down to {new Date(nextFlight.arrivalAt).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(nextFlight.arrivalAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <br />
+              Counting down to {new Date(nextFlight.arrivalAt).toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" })} at {new Date(nextFlight.arrivalAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} <br />
             </p>
           </div>
 
@@ -86,7 +85,7 @@ const CountdownSection = () => {
               { label: "Hours", value: timeLeft.hours },
               { label: "Minutes", value: timeLeft.minutes },
               { label: "Seconds", value: timeLeft.seconds },
-            ].map((item, index) => (
+            ].map((item) => (
               <div key={item.label} className="love-card text-center">
                 <div className="text-4xl md:text-5xl font-playfair font-bold text-rose-600 mb-2">
                   {item.value}
@@ -115,11 +114,11 @@ const CountdownSection = () => {
             <p className="text-gray-600 font-inter leading-relaxed">
               <strong>Departure date:</strong> {(new Date(nextFlight.departureAt)).toLocaleDateString()} <br />
               <strong>Flight number:</strong> {nextFlight.flightNumber} <br />
-              <strong>Flight departure:</strong> {nextFlight.departureAirport?.city}, {nextFlight.departureAirport?.iata} at {new Date(nextFlight.departureAt).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })} <br />
-              <strong>Flight arrival:</strong> {nextFlight.arrivalAirport?.city}, {nextFlight.arrivalAirport?.iata} at {new Date(nextFlight.arrivalAt).toLocaleDateString([], { hour: '2-digit', minute: '2-digit' })}<br />
+              <strong>Flight departure:</strong> {nextFlight.departureAirport?.city}, {nextFlight.departureAirport?.iata} at {new Date(nextFlight.departureAt).toLocaleDateString([], { hour: "2-digit", minute: "2-digit" })} <br />
+              <strong>Flight arrival:</strong> {nextFlight.arrivalAirport?.city}, {nextFlight.arrivalAirport?.iata} at {new Date(nextFlight.arrivalAt).toLocaleDateString([], { hour: "2-digit", minute: "2-digit" })}<br />
               {flightTrackingLink ? (
                 <>
-                  <strong>Tracking Link:</strong>{' '}
+                  <strong>Tracking Link:</strong>{" "}
                   <a
                     href={flightTrackingLink}
                     className="text-rose-500 break-all hover:underline"

@@ -2,20 +2,19 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Upload } from "lucide-react";
-import { toast } from "sonner";
-
+import { Skeleton } from "@/components/ui/skeleton";
+import { AdventDay } from "@/components/advent-calendar/AdventDay";
+import { dayColors, dayNumberColors } from "@/components/advent-calendar/constants";
+import { UploadGiftDialog } from "@/components/advent-calendar/UploadGiftDialog";
 import { useAdventEntries } from "@/hooks/use-advent-entries";
 import { useAdventOpenedDays } from "@/hooks/use-advent-opened-days";
 import { useAdventUpload } from "@/hooks/use-advent-upload";
-import { AdventDay } from "./advent-calendar/AdventDay";
-import { dayColors, dayNumberColors } from "./advent-calendar/constants";
-import { UploadGiftDialog } from "./advent-calendar/UploadGiftDialog";
-import { Skeleton } from "./ui/skeleton";
 import type { AdventEntry } from "@/types/advent";
 import type { AdventViewMode } from "@/types/advent-calendar";
 import { isDayUnlocked as isAdventDayUnlocked } from "@/utils/advent-calendar";
 import { getUserType } from "@/utils/cookies";
+import { Loader2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export const AdventCalendarNew = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);

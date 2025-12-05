@@ -1,6 +1,5 @@
-
-import { Heart, Image, MessageSquare, List, Clock, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Clock, Gift, Heart, Image, List, MessageSquare } from "lucide-react";
 
 interface NavigationProps {
   activeSection: string;
@@ -13,7 +12,7 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
     { id: "advent", label: "Advent", icon: Gift },
     { id: "gallery", label: "Our Photos", icon: Image },
     { id: "todo", label: "Together List", icon: List },
-    // { id: "stats", label: "Our Stats", icon: Heart },
+    { id: "stats", label: "Our Stats", icon: Heart },
     { id: "messages", label: "Messages", icon: MessageSquare },
   ];
 

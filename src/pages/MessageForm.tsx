@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { MessageSquare, Heart, Send, Loader2, Trash2 } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMessage, useDeleteMessage, useMessages } from "@/hooks/use-messages";
 import { getRelativeTimeAsText } from "@/utils/utils";
+import { Heart, Loader2, MessageSquare, Send, Trash2 } from "lucide-react";
 
 const MessageForm = () => {
   const [name, setName] = useState("");
