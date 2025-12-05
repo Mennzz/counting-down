@@ -7,6 +7,8 @@ import type { AdventViewMode } from "@/types/advent-calendar";
 
 type ImageCache = Record<string, string>;
 
+const IMAGE_BATCH_SIZE = 4;
+
 const revokeObjectURL = (url: string) => {
   try {
     URL.revokeObjectURL(url);
@@ -47,34 +49,75 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
       }
 
       setAdvents(data);
+      setLoadError(null);
+      setIsLoading(false);
 
-      for (const advent of data) {
+      const entriesToLoad = data.filter((advent) => {
         const key = advent.imageKey;
-        if (!key || loadedImageKeysRef.current.has(key)) {
-          continue;
+        return key && !loadedImageKeysRef.current.has(key);
+      });
+
+      for (let index = 0; index < entriesToLoad.length; index += IMAGE_BATCH_SIZE) {
+        const batch = entriesToLoad.slice(index, index + IMAGE_BATCH_SIZE);
+
+        const results = await Promise.all(
+          batch.map(async (advent) => {
+            const key = advent.imageKey;
+            if (!key) {
+              return null;
+            }
+
+            try {
+              const blob = await fetchImageWithAuth(key);
+              const url = URL.createObjectURL(blob);
+
+              if (!isMountedRef.current) {
+                revokeObjectURL(url);
+                return null;
+              }
+
+              return { key, url };
+            } catch (error) {
+              console.error(`Failed to load image for ${key}`, error);
+              return null;
+            }
+          })
+        );
+
+        if (!isMountedRef.current) {
+          results.forEach((result) => {
+            if (result) {
+              revokeObjectURL(result.url);
+            }
+          });
+          return;
         }
 
-        try {
-          const blob = await fetchImageWithAuth(key);
-          const url = URL.createObjectURL(blob);
+        const batchUpdates: ImageCache = {};
 
-          if (!isMountedRef.current) {
+        results.forEach((result) => {
+          if (!result) {
+            return;
+          }
+
+          const { key, url } = result;
+          if (loadedImageKeysRef.current.has(key)) {
             revokeObjectURL(url);
             return;
           }
 
           loadedImageKeysRef.current.add(key);
+          batchUpdates[key] = url;
+        });
+
+        if (Object.keys(batchUpdates).length > 0) {
           setImageCache((prev) => {
-            const next = { ...prev, [key]: url };
+            const next = { ...prev, ...batchUpdates };
             imageCacheRef.current = next;
             return next;
           });
-        } catch (error) {
-          console.error(`Failed to load image for ${key}`, error);
         }
       }
-
-      setLoadError(null);
     } catch (error) {
       console.error("Failed to load advents:", error);
       setLoadError(error);

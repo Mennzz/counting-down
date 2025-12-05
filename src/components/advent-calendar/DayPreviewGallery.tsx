@@ -1,5 +1,13 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import type { AdventEntry } from "@/types/advent";
 import { typeEmojis } from "@/types/advent";
+
+const renderPlaceholder = (emoji: string, sizeClass: string) => (
+  <div className="relative flex h-full w-full items-center justify-center">
+    <Skeleton className="absolute inset-0 h-full w-full animate-pulse bg-white/20 blur-sm" />
+    <span className={`relative z-10 ${sizeClass} text-white/80`}>{emoji}</span>
+  </div>
+);
 
 type DayPreviewGalleryProps = {
   entries: AdventEntry[];
@@ -23,11 +31,11 @@ export const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProp
             src={imageUrl}
             alt={entry.title ? `${entry.title} preview` : "Advent preview"}
             className="h-full w-full object-cover"
+            decoding="async"
+            loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl text-white/80">
-            {typeEmojis[entry.type]}
-          </div>
+          renderPlaceholder(typeEmojis[entry.type], "text-4xl")
         )}
         <div className="absolute right-2 top-2 text-2xl drop-shadow-sm">
           {typeEmojis[entry.type]}
@@ -52,11 +60,11 @@ export const DayPreviewGallery = ({ entries, imageCache }: DayPreviewGalleryProp
                 src={imageUrl}
                 alt={entry.title ? `${entry.title} preview` : "Advent preview"}
                 className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl text-white/80">
-                {typeEmojis[entry.type]}
-              </div>
+              renderPlaceholder(typeEmojis[entry.type], "text-2xl")
             )}
             <div className="absolute right-1 top-1 text-lg drop-shadow-sm">
               {typeEmojis[entry.type]}

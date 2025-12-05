@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { AdventEntry } from "@/types/advent";
 import { typeEmojis, typeStyles } from "@/types/advent";
 
@@ -34,10 +35,13 @@ export const DayDialogGallery = ({ entries, imageCache, viewMode, onDelete }: Da
                         src={imageUrl}
                         alt={entry.title ? `${entry.title}` : "Advent surprise"}
                         className="h-auto w-full max-h-[60vh] object-contain"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
-                      <div className="flex h-[40vh] items-center justify-center text-6xl text-white/80">
-                        {typeEmojis[entry.type]}
+                      <div className="relative flex h-[40vh] w-full items-center justify-center">
+                        <Skeleton className="absolute inset-0 h-full w-full animate-pulse bg-white/10 blur" />
+                        <span className="relative z-10 text-6xl text-white/80">{typeEmojis[entry.type]}</span>
                       </div>
                     )}
                     <div className="absolute right-2 top-2 rounded-full bg-black/60 px-3 py-1 text-lg text-white shadow">
