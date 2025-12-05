@@ -117,7 +117,13 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
         return;
       }
 
-      setAdvents(data);
+      const sortedAdvents = [...data].sort((a, b) => {
+        const aTime = new Date(a.uploadedAt).getTime();
+        const bTime = new Date(b.uploadedAt).getTime();
+        return aTime - bTime;
+      });
+
+      setAdvents(sortedAdvents);
       setLoadError(null);
       setIsLoading(false);
 
