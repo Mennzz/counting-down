@@ -1,5 +1,9 @@
 import { Heart, Image } from "lucide-react";
 
+// TODO: Replace with dynamic photo fetching from backend or Lovable API
+// It should get photos uploaded from previous advent events and regular uploads by both users and display them here.
+
+
 const PhotoGallery = () => {
   const photos = [
     {
