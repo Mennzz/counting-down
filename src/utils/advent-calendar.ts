@@ -11,3 +11,8 @@ export const isDayUnlocked = (viewMode: AdventViewMode, day: number, referenceDa
 
   return day <= referenceDate.getDate();
 };
+
+export const shouldShowAdventCalendar = (referenceDate: Date = new Date()): boolean => {
+  const validMonths = [10, 11]; // November and December
+  return validMonths.includes(referenceDate.getMonth());
+}

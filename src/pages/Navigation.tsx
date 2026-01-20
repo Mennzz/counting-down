@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Clock, Gift, Heart, Image, List, MessageSquare } from "lucide-react";
+import { shouldShowAdventCalendar } from "@/utils/advent-calendar";
 
 interface NavigationProps {
   activeSection: string;
@@ -9,7 +10,7 @@ interface NavigationProps {
 const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
   const sections = [
     { id: "countdown", label: "Countdown", icon: Clock },
-    { id: "advent", label: "Advent", icon: Gift },
+    { id: "advent", label: "Advent", icon: Gift, shouldShow: shouldShowAdventCalendar() },
     { id: "gallery", label: "Our Photos", icon: Image },
     { id: "todo", label: "Together List", icon: List },
     { id: "stats", label: "Our Stats", icon: Heart },
@@ -31,6 +32,8 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
           
           <div className="hidden md:flex items-center space-x-1">
             {sections.map((section) => {
+              if (section.shouldShow === false) return null; 
+
               const Icon = section.icon;
               return (
                 <button
