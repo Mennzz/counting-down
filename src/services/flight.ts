@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "./api";
-import { Flight } from "@/types/flight";
+import { Flight, CreateFlightRequest } from "@/types/flight";
 import { processResponse } from "@/utils/api";
+import { camelToSnake } from "@/utils/utils";
 
 export const flightApi = {
   getFlights: async (): Promise<Flight[]> => {
@@ -49,6 +50,17 @@ export const flightApi = {
       return null;
     }
 
+    return await processResponse<Flight>(await response.json());
+  },
+
+  createFlight: async (flight: CreateFlightRequest): Promise<Flight> => {
+    const response = await fetch(`${API_BASE_URL}/flights`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(camelToSnake(flight)),
+    });
     return await processResponse<Flight>(await response.json());
   },
 };

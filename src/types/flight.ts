@@ -16,11 +16,11 @@ export interface Flight {
 
 export interface CreateFlightRequest {
     flightNumber: string;
-    departureIcao: string;
-    arrivalIcao: string;
+    departureAirportIcao: string;
+    arrivalAirportIcao: string;
     departureAt: string;
     arrivalAt: string;
-    flightStatus?: FlightStatus;
+    status?: FlightStatus;
 }
 
 export interface UpdateFlightRequest {

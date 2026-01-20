@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { Calendar, Heart, Loader2 } from "lucide-react";
+import { Calendar, Heart, Loader2, Plus } from "lucide-react";
 
 import PlaneFlightAnimation from "@/components/partials/FlightAnim";
+import { CreateFlightDialog } from "@/components/CreateFlightDialog";
+import { Button } from "@/components/ui/button";
 import { useNextFlight } from "@/hooks/use-flights";
 import { getFlightInProgress, getTrackingLinkFromFlightNumber } from "@/utils/flight";
 
@@ -74,9 +76,20 @@ const CountdownSection = () => {
       {nextFlight && !isLoading && !error && (
         <div className="space-y-8">
           <div className="space-y-4">
-            <p className="text-xl text-gray-600 font-inter">
-              Counting down to {new Date(nextFlight.arrivalAt).toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" })} at {new Date(nextFlight.arrivalAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} <br />
-            </p>
+            <div className="flex items-center justify-center max-w-2xl mx-auto">
+              <p className="text-xl text-gray-600 font-inter">
+                Counting down to {new Date(nextFlight.arrivalAt).toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" })} at {new Date(nextFlight.arrivalAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </p>
+              <CreateFlightDialog>
+                <Button
+                  size="sm"
+                  className="bg-rose-500 hover:bg-rose-600 text-white ml-2 flex-shrink-0"
+                  title="Add new flight"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </CreateFlightDialog>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
