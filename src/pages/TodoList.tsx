@@ -77,7 +77,7 @@ const TodoList = () => {
     }
   }, [selectedFilterCategory, todos]);
 
-  const completedCount = todos.filter((todo) => todo.completed).length;
+  const completedCount = filteredTodos.filter((todo) => todo.completed).length;
 
   if (isLoading) {
     return (
