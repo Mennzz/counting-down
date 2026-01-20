@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,25 +8,28 @@ import { Clock, Heart, List, Loader2, Plus, Trash2 } from "lucide-react";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Date");
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState("All");
+  const [selectedNewTodoCategory, setSelectedNewTodoCategory] = useState("Date");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const { data: todos = [], isLoading, error } = useTodos();
+  const [filteredTodos, setFilteredTodos] = useState(todos);
   const createTodoMutation = useCreateTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
   const toggleTodoMutation = useToggleTodo();
 
-  const categories = ["Date", "Adventure", "Home", "Food", "Culture", "Activity"];
+  const categories = ["Date", "Adventure", "Home", "Food", "Culture", "Activity", "Movie"];
 
   const addTodo = async () => {
     if (newTodo.trim()) {
       try {
         await createTodoMutation.mutateAsync({
           title: newTodo.trim(),
-          category: selectedCategory,
+          category: selectedNewTodoCategory,
         });
         setNewTodo("");
+        setSelectedFilterCategory(selectedNewTodoCategory);
       } catch (error) {
         console.error("Failed to create todo:", error);
       }
@@ -64,6 +67,15 @@ const TodoList = () => {
     };
     return colors[category as keyof typeof colors] || "bg-gray-50 text-gray-600 border-gray-200";
   };
+
+  useEffect(() => {
+    if (selectedFilterCategory === "All") {
+      setFilteredTodos(todos);
+    } else {
+      const filteredTodos = todos.filter((todo) => todo.category === selectedFilterCategory);
+      setFilteredTodos(filteredTodos);
+    }
+  }, [selectedFilterCategory, todos]);
 
   const completedCount = todos.filter((todo) => todo.completed).length;
 
@@ -133,15 +145,26 @@ const TodoList = () => {
       </div>
 
       <div className="love-card">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between gap-2 mb-6">
+          <div>
+            <select
+              value={selectedFilterCategory}
+              onChange={(e) => setSelectedFilterCategory(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+            >
+              {["All", ...categories].map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center space-x-2">
             <Heart className="w-5 h-5 text-rose-500" />
             <span className="text-lg font-medium text-gray-700">
               <span className="text-rose-600 font-bold">{completedCount}</span> of{" "}
-              <span className="text-rose-600 font-bold">{todos.length}</span> completed
+              <span className="text-rose-600 font-bold">{filteredTodos.length}</span> completed
             </span>
           </div>
-          <div className="flex items-center space-x-2 text-gray-500">
+          <div className="hidden md:flex items-center space-x-2 text-gray-500">
             <Clock className="w-4 h-4" />
             <span className="text-sm">Creating memories together</span>
           </div>
@@ -156,8 +179,8 @@ const TodoList = () => {
             onKeyPress={(e) => e.key === "Enter" && addTodo()}
           />
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            value={selectedNewTodoCategory}
+            onChange={(e) => setSelectedNewTodoCategory(e.target.value)}
             className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
           >
             {categories.map((category) => (
@@ -175,7 +198,7 @@ const TodoList = () => {
         </div>
 
         <div className="space-y-3">
-          {todos.map((todo) => (
+          {filteredTodos.map((todo) => (
             <div
               key={todo.id}
               className={`flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 ${todo.completed
