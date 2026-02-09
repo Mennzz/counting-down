@@ -460,6 +460,10 @@ const PhotoGallery = () => {
             ? new Date(photo.uploadedAt).toLocaleDateString()
             : "";
           const imageUrl = photo.thumbnailXlUrl || photo.thumbnailUrl || photo.url;
+          const hasSensitiveTag = (photo.imageTags ?? []).some((tag) => {
+            const normalized = tag.trim().toLowerCase();
+            return normalized === "spicy" || normalized === "nude";
+          });
 
           return (
             <button
@@ -474,7 +478,7 @@ const PhotoGallery = () => {
                   alt={caption}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-64 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                  className={`w-full h-64 object-cover rounded-lg transition-transform duration-300 ${hasSensitiveTag ? "blur-xl" : "group-hover:scale-105"}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
                 <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
