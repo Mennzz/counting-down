@@ -1,11 +1,17 @@
 import { CreateMessageRequest, Message } from "@/types/message";
 import { API_BASE_URL, ApiError } from "./api";
 import { processResponse } from "@/utils/api";
+import { getSessionId } from "@/utils/cookies";
 
 export const messageApi = {
   // Get all messages
   getMessages: async (): Promise<Message[]> => {
-    const response = await fetch(`${API_BASE_URL}/messages`);
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/messages`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
 
     if (!response.ok) {
       throw new ApiError(response.status, "Failed to fetch messages");
@@ -22,10 +28,12 @@ export const messageApi = {
 
   // Create a new message
   createMessage: async (message: CreateMessageRequest): Promise<Message> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
       },
       body: JSON.stringify(message),
     });
@@ -34,8 +42,12 @@ export const messageApi = {
 
   // Delete a message
   deleteMessage: async (id: string): Promise<void> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
       method: "DELETE",
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
     });
     if (!response.ok) {
       const data = await response.json();

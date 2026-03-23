@@ -2,20 +2,28 @@ import { camelToSnake } from "@/utils/utils";
 import { API_BASE_URL, ApiError } from "./api";
 import { Todo, CreateTodoRequest, UpdateTodoRequest } from "@/types/todo";
 import { processResponse } from "@/utils/api";
+import { getSessionId } from "@/utils/cookies";
 
 export const todoApi = {
   // Get all todos
   getTodos: async (): Promise<Todo[]> => {
-    const response = await fetch(`${API_BASE_URL}/todos`);
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/todos`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
     return await processResponse<Todo[]>(await response.json());
   },
 
   // Create a new todo
   createTodo: async (todo: CreateTodoRequest): Promise<Todo> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/todos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
       },
       // convert outgoing payload keys to snake_case if backend expects it
       body: JSON.stringify(camelToSnake(todo)),
@@ -25,10 +33,12 @@ export const todoApi = {
 
   // Update an existing todo
   updateTodo: async (id: number, updates: UpdateTodoRequest): Promise<Todo> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/todos/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
       },
       body: JSON.stringify(camelToSnake(updates)),
     });
@@ -37,8 +47,12 @@ export const todoApi = {
 
   // Delete a todo
   deleteTodo: async (id: string): Promise<void> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/todos/${id}`, {
       method: "DELETE",
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
     });
     if (!response.ok) {
       const data = await response.json();
@@ -51,10 +65,14 @@ export const todoApi = {
   },
 
   toggleTodo: async (_id: string): Promise<Todo> => {
+    const sessionId = getSessionId();
     const response = await fetch(
       `${API_BASE_URL}/todos/${_id}/toggle-completion`,
       {
         method: "POST",
+        headers: {
+          ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+        },
       }
     );
     return await processResponse<Todo>(await response.json());

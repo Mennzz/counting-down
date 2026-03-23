@@ -4,11 +4,12 @@ import type { LoginResponse, LoginRequest } from "@/types/auth";
 import { setCookie, clearSession } from "@/utils/cookies";
 
 export const login = async (accessKey: string): Promise<LoginResponse> => {
-  const response = await fetch(`${API_BASE_URL}/login?access_key=${encodeURIComponent(accessKey)}`, {
+  const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ access_key: accessKey }),
   });
 
   if (!response.ok) {
@@ -32,10 +33,11 @@ export const login = async (accessKey: string): Promise<LoginResponse> => {
 
 export const logout = async (sessionId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/logout?session_id=${encodeURIComponent(sessionId)}`, {
+    const response = await fetch(`${API_BASE_URL}/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Session-Id": sessionId,
       },
     });
 

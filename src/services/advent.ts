@@ -150,6 +150,28 @@ export const createAdvent = async (
   return await processResponse<AdventEntry>(data);
 };
 
+export const getAdventCountByMe = async (): Promise<number> => {
+  const sessionId = getSessionId();
+  if (!sessionId) {
+    throw new Error("No active session");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/advent/by_me/count`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Session-Id": sessionId,
+    },
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, "Failed to fetch advent count");
+  }
+
+  const data = await response.json();
+  return (data as { count: number }).count;
+};
+
 export const deleteAdvent = async (id: string): Promise<void> => {
   const sessionId = getSessionId();
   if (!sessionId) {

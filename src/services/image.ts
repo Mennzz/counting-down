@@ -135,6 +135,45 @@ export const createImageMetadata = async (
   });
 };
 
+export const deleteImage = async (id: string): Promise<void> => {
+  const sessionId = getSessionHeader();
+  const response = await fetch(
+    `${API_BASE_URL}/images/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: {
+        "X-Session-Id": sessionId,
+      },
+    },
+  );
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(response.status, errorData.detail || "Failed to delete image");
+  }
+};
+
+export const updateImageMetadata = async (
+  id: string,
+  payload: { title?: string; description?: string; imageTags?: string[] },
+): Promise<ImageMetadata> => {
+  const sessionId = getSessionHeader();
+  return await fetchJson<ImageMetadata>(
+    `${API_BASE_URL}/images/${encodeURIComponent(id)}/meta`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-Id": sessionId,
+      },
+      body: JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        image_tags: payload.imageTags,
+      }),
+    },
+  );
+};
+
 export const requestThumbnailGenerationByKey = async (
   key: string,
 ): Promise<void> => {

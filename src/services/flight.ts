@@ -2,10 +2,16 @@ import { API_BASE_URL } from "./api";
 import { Flight, CreateFlightRequest } from "@/types/flight";
 import { processResponse } from "@/utils/api";
 import { camelToSnake } from "@/utils/utils";
+import { getSessionId } from "@/utils/cookies";
 
 export const flightApi = {
   getFlights: async (): Promise<Flight[]> => {
-    const response = await fetch(`${API_BASE_URL}/flights`);
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/flights`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch flights");
     }
@@ -13,7 +19,12 @@ export const flightApi = {
   },
 
   getFlightById: async (id: string): Promise<Flight> => {
-    const response = await fetch(`${API_BASE_URL}/flights/${id}`);
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/flights/${id}`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
     if (!response.ok) {
       throw new Error("Flight not found");
     }
@@ -21,9 +32,12 @@ export const flightApi = {
   },
 
   getFlightByCode: async (code: string): Promise<Flight[]> => {
-    const response = await fetch(
-      `${API_BASE_URL}/flights/code/${code}`
-    );
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/flights/code/${code}`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
     if (!response.ok) {
       throw new Error("Flight not found");
     }
@@ -31,8 +45,14 @@ export const flightApi = {
   },
 
   getFlightByFlightNumber: async (flightNumber: string): Promise<Flight> => {
+    const sessionId = getSessionId();
     const response = await fetch(
-      `${API_BASE_URL}/flights/flight_number/${flightNumber}`
+      `${API_BASE_URL}/flights/flight_number/${flightNumber}`,
+      {
+        headers: {
+          ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+        },
+      }
     );
     if (!response.ok) {
       throw new Error("Flight not found");
@@ -41,7 +61,12 @@ export const flightApi = {
   },
 
   getNextFlight: async (): Promise<Flight> => {
-    const response = await fetch(`${API_BASE_URL}/flights/next`);
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE_URL}/flights/next`, {
+      headers: {
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+      },
+    });
     if (!response.ok) {
       throw new Error("Error getting next flight");
     }
@@ -54,10 +79,12 @@ export const flightApi = {
   },
 
   createFlight: async (flight: CreateFlightRequest): Promise<Flight> => {
+    const sessionId = getSessionId();
     const response = await fetch(`${API_BASE_URL}/flights`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId ? { "X-Session-Id": sessionId } : {}),
       },
       body: JSON.stringify(camelToSnake(flight)),
     });

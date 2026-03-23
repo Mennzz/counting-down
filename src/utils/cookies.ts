@@ -1,5 +1,5 @@
 export const setCookie = (name: string, value: string, expiresAt?: string) => {
-  let cookieString = `${name}=${encodeURIComponent(value)}; path=/`;
+  let cookieString = `${name}=${encodeURIComponent(value)}; path=/; SameSite=Strict; Secure`;
 
   if (expiresAt) {
     cookieString += `; expires=${new Date(expiresAt).toUTCString()}`;

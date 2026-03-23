@@ -7,7 +7,7 @@ import { useMessages } from "@/hooks/use-messages";
 import { useTodos } from "@/hooks/use-todos";
 import { useNextFlight } from "@/hooks/use-flights";
 import { getFlightInProgress } from "@/utils/flight";
-import { useAdventEntries } from "@/hooks/use-advent-entries";
+import { useAdventCount } from "@/hooks/use-advent-count";
 import { useAdventOpenedDays } from "@/hooks/use-advent-opened-days";
 import type { Message } from "@/types/message";
 
@@ -40,7 +40,7 @@ export const useRelationshipStats = (): RelationshipStatsState => {
   const { data: todos = [], isLoading: isTodosLoading } = useTodos();
   const { data: nextFlight, isLoading: isFlightLoading } = useNextFlight();
   const { openedDays } = useAdventOpenedDays();
-  const { advents } = useAdventEntries("by-me");
+  const { count: giftsUploadedCount } = useAdventCount();
 
   const lastMessage = messages[0];
   const earliestMessage = messages[messages.length - 1];
@@ -97,7 +97,7 @@ export const useRelationshipStats = (): RelationshipStatsState => {
     : false;
 
   const giftsOpened = openedDays.size;
-  const giftsUploaded = advents.length;
+  const giftsUploaded = giftsUploadedCount ?? 0;
   const giftProgress = Math.round((giftsOpened / 25) * 100);
 
   const stats: RelationshipStatCard[] = [
