@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MessageFormSkeleton } from "@/components/loading/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +16,7 @@ const MessageForm = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const { data: messages = [], isLoading, error } = useMessages();
+  const { data: messages = [], isLoading } = useMessages();
   const createMessageMutation = useCreateMessage();
   const deleteMessageMutation = useDeleteMessage();
 
@@ -57,10 +58,7 @@ const MessageForm = () => {
   };
 
   if (isLoading) {
-    return (<div className="text-center py-10">
-      <Loader2 className="w-6 h-6 text-rose-500 animate-spin mx-auto" />
-      <p className="text-gray-600 mt-2">Loading messages...</p>
-    </div>);
+    return <MessageFormSkeleton />;
   }
 
   return (

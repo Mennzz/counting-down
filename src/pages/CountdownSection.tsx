@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Calendar, Heart, Loader2, Plus } from "lucide-react";
+import { Calendar, Heart, Plus } from "lucide-react";
 
+import { CountdownSectionSkeleton } from "@/components/loading/PageSkeletons";
 import PlaneFlightAnimation from "@/components/partials/FlightAnim";
 import { CreateFlightDialog } from "@/components/CreateFlightDialog";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,10 @@ const CountdownSection = () => {
     return () => clearInterval(interval);
   }, [nextFlight]);
 
+  if (isLoading) {
+    return <CountdownSectionSkeleton />;
+  }
+
   return (
     <div className="max-w-4xl mx-auto text-center space-y-8">
       <div className="space-y-4">
@@ -53,14 +58,6 @@ const CountdownSection = () => {
           <Heart className="w-8 h-8 text-rose-500 animate-heart-beat" />
         </div>
       </div>
-
-      {isLoading && (
-        <div className="text-center py-10">
-          <Loader2 className="w-6 h-6 text-rose-500 animate-spin mx-auto" />
-          <p className="text-gray-600 mt-2">Loading flight details...</p>
-        </div>
-      )}
-
       {error && (
         <div className="text-center py-10">
           <p className="text-red-500">Error loading flight details. Please try again later.</p>

@@ -1,12 +1,17 @@
 import { Heart } from "lucide-react";
 
+import { RelationshipStatsSkeleton } from "@/components/loading/PageSkeletons";
 import { LatestMessageCard } from "./relationship-stats/LatestMessageCard";
 import { StatsGrid } from "./relationship-stats/StatsGrid";
 import { Timeline } from "./relationship-stats/Timeline";
 import { useRelationshipStats } from "./relationship-stats/useRelationshipStats";
 
 const RelationshipStats = () => {
-  const { stats, timelineMilestones, lastMessage, lastMessageTimeAgo } = useRelationshipStats();
+  const { isLoading, stats, timelineMilestones, lastMessage, lastMessageTimeAgo } = useRelationshipStats();
+
+  if (isLoading) {
+    return <RelationshipStatsSkeleton />;
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

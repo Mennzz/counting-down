@@ -26,6 +26,7 @@ export interface TimelineMilestone {
 }
 
 interface RelationshipStatsState {
+  isLoading: boolean;
   stats: RelationshipStatCard[];
   timelineMilestones: TimelineMilestone[];
   lastMessage: Message | undefined;
@@ -40,7 +41,7 @@ export const useRelationshipStats = (): RelationshipStatsState => {
   const { data: todos = [], isLoading: isTodosLoading } = useTodos();
   const { data: nextFlight, isLoading: isFlightLoading } = useNextFlight();
   const { openedDays } = useAdventOpenedDays();
-  const { count: giftsUploadedCount } = useAdventCount();
+  const { count: giftsUploadedCount, isLoading: isAdventCountLoading } = useAdventCount();
 
   const lastMessage = messages[0];
   const earliestMessage = messages[messages.length - 1];
@@ -220,6 +221,7 @@ export const useRelationshipStats = (): RelationshipStatsState => {
   ].filter(Boolean) as TimelineMilestone[];
 
   return {
+    isLoading: isMessagesLoading || isTodosLoading || isFlightLoading || isAdventCountLoading,
     stats,
     timelineMilestones,
     lastMessage,

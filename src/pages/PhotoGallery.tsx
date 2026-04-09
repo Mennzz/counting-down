@@ -13,6 +13,7 @@ import {
   type ImageMetadata,
   type ImagePageResponse
 } from "@/services/image";
+import { PhotoGallerySkeleton } from "@/components/loading/PageSkeletons";
 import { getUserType } from "@/utils/cookies";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -402,6 +403,10 @@ const PhotoGallery = () => {
     }
   };
 
+  if (isLoading) {
+    return <PhotoGallerySkeleton />;
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="text-center space-y-4">
@@ -551,11 +556,6 @@ const PhotoGallery = () => {
         </div>
         <p className="text-sm text-gray-500 font-inter">{filterLabel}</p>
       </div>
-
-      {isLoading ? (
-        <div className="text-center text-gray-500 font-inter">Loading photos...</div>
-      ) : null}
-
       {loadError ? (
         <div className="text-center text-rose-600 font-inter">{loadError}</div>
       ) : null}

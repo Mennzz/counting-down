@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { AdventCalendarSkeleton } from "@/components/loading/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { AdventDay } from "@/components/advent-calendar/AdventDay";
 import { dayColors, dayNumberColors } from "@/components/advent-calendar/constants";
 import { UploadGiftDialog } from "@/components/advent-calendar/UploadGiftDialog";
@@ -13,7 +13,7 @@ import type { AdventEntry } from "@/types/advent";
 import type { AdventViewMode } from "@/types/advent-calendar";
 import { isDayUnlocked as isAdventDayUnlocked } from "@/utils/advent-calendar";
 import { getUserType } from "@/utils/cookies";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export const AdventCalendarNew = () => {
@@ -78,20 +78,7 @@ export const AdventCalendarNew = () => {
   const progressPercentage = Math.round((openedDays.size / 25) * 100);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-5xl font-bold text-red-600">🎄 Advent Calendar 🎄</h1>
-          <p className="text-muted-foreground">25 days of surprises leading to Christmas!</p>
-
-          <div className="mt-4 flex justify-center">
-            <Skeleton className="h-10 w-56 rounded" />
-          </div>
-        </div>
-
-        <Loader2 className="mx-auto my-20 h-8 w-8 animate-spin text-rose-500" />
-      </div>
-    );
+    return <AdventCalendarSkeleton />;
   }
 
   return (

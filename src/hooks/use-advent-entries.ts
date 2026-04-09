@@ -106,7 +106,7 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
         console.error(`Failed to load thumbnail for ${key}`, error);
       }
     }
-  }, [fetchThumbnailWithAuth]);
+  }, []);
 
   const loadAdvents = useCallback(async () => {
     setIsLoading(true);

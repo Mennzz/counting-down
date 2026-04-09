@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { TodoListSkeleton } from "@/components/loading/PageSkeletons";
 import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useToggleTodo } from "@/hooks/use-todos";
 import { Clock, Heart, List, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -80,31 +80,7 @@ const TodoList = () => {
   const completedCount = filteredTodos.filter((todo) => todo.completed).length;
 
   if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-2">
-            <List className="w-6 h-6 text-rose-500" />
-            <h2 className="text-4xl font-playfair font-semibold text-rose-600">Things We Want to Do Together</h2>
-            <List className="w-6 h-6 text-rose-500" />
-          </div>
-          <p className="text-lg text-gray-600 font-inter">
-            Our bucket list of shared adventures
-          </p>
-        </div>
-
-        <div className="love-card">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
-          </div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <TodoListSkeleton />;
   }
 
   if (error) {
