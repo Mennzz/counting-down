@@ -1,6 +1,6 @@
 import Lottie from "lottie-react";
 
-import catPookieAnimation from "@/assets/catPookieAnimation";
+import catPookieAnimation from "@/assets/catPookieAnimation.json";
 
 export const AppColdStartLoader = () => {
   return (
@@ -11,6 +11,7 @@ export const AppColdStartLoader = () => {
             animationData={catPookieAnimation}
             autoplay
             loop
+            rendererSettings={{ preserveAspectRatio: "xMidYMid meet" }}
             className="h-40 w-40"
             aria-label="Animated cat loading indicator"
           />
