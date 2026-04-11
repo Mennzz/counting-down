@@ -67,6 +67,16 @@ const CountdownSection = () => {
       {nextFlight === null && !isLoading && !error && (
         <div className="text-center py-10">
           <p className="text-gray-600">No upcoming flights scheduled 😭 Book one now to be back together soon!</p>
+          <CreateFlightDialog>
+            <Button
+              size="sm"
+              className="bg-rose-500 hover:bg-rose-600 text-white mt-4"
+              title="Add new flight"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Flight
+            </Button>
+          </CreateFlightDialog>
         </div>
       )}
 

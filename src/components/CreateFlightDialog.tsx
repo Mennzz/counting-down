@@ -38,8 +38,8 @@ export const CreateFlightDialog = ({ children }: CreateFlightDialogProps) => {
         flightNumber: flightNumber.trim(),
         departureAirportIcao: departureIcao,
         arrivalAirportIcao: arrivalIcao,
-        departureAt,
-        arrivalAt,
+        departureAt: new Date(departureAt).toISOString(),
+        arrivalAt: new Date(arrivalAt).toISOString(),
         status: flightStatus,
       });
 
