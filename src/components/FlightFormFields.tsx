@@ -121,6 +121,7 @@ export const FlightFormFields = ({ values, onChange }: FlightFormFieldsProps) =>
             <SelectItem value="DRAFT">Draft</SelectItem>
             <SelectItem value="ACTIVE">Active</SelectItem>
             <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            <SelectItem value="EXPIRED">Expired</SelectItem>
           </SelectContent>
         </Select>
       </div>

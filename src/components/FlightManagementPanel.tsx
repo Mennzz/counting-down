@@ -17,12 +17,33 @@ const statusClasses: Record<FlightStatus, string> = {
   DRAFT: "border-amber-200 bg-amber-50 text-amber-700",
   ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-700",
   CANCELLED: "border-slate-200 bg-slate-100 text-slate-600",
+  EXPIRED: "border-sky-200 bg-sky-50 text-sky-700",
 };
 
 const statusLabels: Record<FlightStatus, string> = {
   DRAFT: "Draft",
   ACTIVE: "Active",
   CANCELLED: "Cancelled",
+  EXPIRED: "Expired",
+};
+
+const getStatusLabel = (status: string): string => {
+  if (status in statusLabels) {
+    return statusLabels[status as FlightStatus];
+  }
+
+  return status
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getStatusClasses = (status: string): string => {
+  if (status in statusClasses) {
+    return statusClasses[status as FlightStatus];
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-700";
 };
 
 const formatFlightDateTime = (value: string) => format(new Date(value), "PPP p");
@@ -51,8 +72,8 @@ const FlightRow = ({
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="text-lg font-semibold text-rose-700">{flight.flightNumber}</div>
-          <Badge variant="outline" className={statusClasses[flight.status]}>
-            {statusLabels[flight.status]}
+          <Badge variant="outline" className={getStatusClasses(flight.status)}>
+            {getStatusLabel(flight.status)}
           </Badge>
           {isCountdownFlight && (
             <Badge className="bg-rose-500 text-white hover:bg-rose-500">Used in countdown</Badge>

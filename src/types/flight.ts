@@ -1,6 +1,6 @@
 import { Airport } from "./airport";
 
-export type FlightStatus = "DRAFT" | "ACTIVE" | "CANCELLED";
+export type FlightStatus = "DRAFT" | "ACTIVE" | "CANCELLED" | "EXPIRED";
 
 export interface Flight {
     id: string;
