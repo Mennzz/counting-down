@@ -7,7 +7,7 @@ import { getSessionId } from "@/utils/cookies";
 export const flightApi = {
   getFlights: async (): Promise<Flight[]> => {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/flights`, {
+    const response = await fetch(`${API_BASE_URL}/flights/all`, {
       headers: {
         ...(sessionId ? { "X-Session-Id": sessionId } : {}),
       },
@@ -97,21 +97,11 @@ export const flightApi = {
       "Content-Type": "application/json",
       ...(sessionId ? { "X-Session-Id": sessionId } : {}),
     };
-    const body = JSON.stringify(camelToSnake(flight));
-
-    let response = await fetch(`${API_BASE_URL}/flights/${id}`, {
-      method: "PATCH",
+    const response = await fetch(`${API_BASE_URL}/flights/${id}`, {
+      method: "PUT",
       headers,
-      body,
+      body: JSON.stringify(camelToSnake(flight)),
     });
-
-    if (response.status === 404 || response.status === 405) {
-      response = await fetch(`${API_BASE_URL}/flights/${id}`, {
-        method: "PUT",
-        headers,
-        body,
-      });
-    }
 
     return await processResponse<Flight>(await response.json());
   },

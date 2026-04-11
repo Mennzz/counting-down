@@ -127,6 +127,9 @@ const CountdownSection = () => {
             </div>
           </div>
 
+          {isManagementVisible && <FlightManagementPanel nextFlightId={nextFlight.id} />}
+
+
           <div className="mx-auto grid max-w-2xl grid-cols-2 gap-4 md:grid-cols-4">
             {[
               { label: "Days", value: timeLeft.days },
@@ -185,7 +188,6 @@ const CountdownSection = () => {
             </p>
           </div>
 
-          {isManagementVisible && <FlightManagementPanel nextFlightId={nextFlight.id} />}
         </div>
       )}
 
