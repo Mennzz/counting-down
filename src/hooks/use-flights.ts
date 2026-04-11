@@ -1,4 +1,5 @@
 import { flightApi } from "@/services/flight";
+import { UpdateFlightRequest } from "@/types/flight";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,6 +39,31 @@ export const useCreateFlight = () => {
                 variant: "destructive",
                 title: "Error",
                 description: `Failed to create flight: ${error.message}`,
+            });
+        },
+    });
+};
+
+export const useUpdateFlight = () => {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+
+    return useMutation({
+        mutationFn: ({ id, flight }: { id: string; flight: UpdateFlightRequest }) =>
+            flightApi.updateFlight(id, flight),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: FLIGHTS_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: [...FLIGHTS_QUERY_KEY, "nextFlight"] });
+            toast({
+                title: "Success",
+                description: "Flight updated successfully!",
+            });
+        },
+        onError: (error) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: `Failed to update flight: ${error.message}`,
             });
         },
     });

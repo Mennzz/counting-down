@@ -26,8 +26,8 @@ export interface CreateFlightRequest {
 export interface UpdateFlightRequest {
     status?: FlightStatus;
     flightNumber?: string;
-    departureIcao?: string;
-    arrivalIcao?: string;
+    departureAirportIcao?: string;
+    arrivalAirportIcao?: string;
     departureAt?: string;
     arrivalAt?: string;
 }

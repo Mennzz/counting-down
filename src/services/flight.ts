@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./api";
-import { Flight, CreateFlightRequest } from "@/types/flight";
+import { Flight, CreateFlightRequest, UpdateFlightRequest } from "@/types/flight";
 import { processResponse } from "@/utils/api";
 import { camelToSnake } from "@/utils/utils";
 import { getSessionId } from "@/utils/cookies";
@@ -88,6 +88,31 @@ export const flightApi = {
       },
       body: JSON.stringify(camelToSnake(flight)),
     });
+    return await processResponse<Flight>(await response.json());
+  },
+
+  updateFlight: async (id: string, flight: UpdateFlightRequest): Promise<Flight> => {
+    const sessionId = getSessionId();
+    const headers = {
+      "Content-Type": "application/json",
+      ...(sessionId ? { "X-Session-Id": sessionId } : {}),
+    };
+    const body = JSON.stringify(camelToSnake(flight));
+
+    let response = await fetch(`${API_BASE_URL}/flights/${id}`, {
+      method: "PATCH",
+      headers,
+      body,
+    });
+
+    if (response.status === 404 || response.status === 405) {
+      response = await fetch(`${API_BASE_URL}/flights/${id}`, {
+        method: "PUT",
+        headers,
+        body,
+      });
+    }
+
     return await processResponse<Flight>(await response.json());
   },
 };
