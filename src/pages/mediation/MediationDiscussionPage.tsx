@@ -14,19 +14,65 @@ import {
   useMediationComments,
   useMediationSession,
 } from "@/hooks/use-mediation";
-import type { AIOutputStatus, MediationComment, SharedMediationAdviceOutput } from "@/types/mediation";
+import type {
+  AIOutputStatus,
+  MediationAdviceTask,
+  MediationComment,
+  SharedMediationAdviceOutput,
+} from "@/types/mediation";
 import { MediationPageShell, SessionStateNotice } from "./MediationShared";
 import { canDiscuss, isAdviceAvailable, isSessionReadOnly } from "./mediation-ui";
 
-const AdviceList = ({ items }: { items?: string[] | null }) => {
-  if (!items?.length) return null;
+const cleanAdviceListItem = (item: unknown): string | null => {
+  if (typeof item !== "string") return null;
+
+  const trimmed = item.trim();
+
+  if (!trimmed) return null;
+  if (/^(tasks_for_joris|tasks_for_danfeng|joint_task)['"]?\s*:/i.test(trimmed)) return null;
+  if (/^(title|description)$/i.test(trimmed)) return null;
+  if (/^[\s{[\]},:'"]+$/.test(trimmed)) return null;
+
+  return trimmed.replace(/(?:["'“”]|â€œ|â€)?\],?$/u, "").trim();
+};
+
+const AdviceList = ({ items }: { items?: unknown[] | null }) => {
+  const cleanItems = items?.map(cleanAdviceListItem).filter((item): item is string => Boolean(item)) ?? [];
+
+  if (!cleanItems.length) return null;
 
   return (
     <ul className="mt-2 list-disc space-y-1 pl-5">
-      {items.map((item, index) => (
+      {cleanItems.map((item, index) => (
         <li key={`${item}-${index}`}>{item}</li>
       ))}
     </ul>
+  );
+};
+
+const AdviceTaskList = ({ tasks }: { tasks?: MediationAdviceTask[] | null }) => {
+  if (!tasks?.length) return null;
+
+  return (
+    <ul className="mt-2 list-disc space-y-2 pl-5">
+      {tasks.map((task, index) => (
+        <li key={`${task.title}-${index}`}>
+          <span className="font-medium text-gray-800">{task.title}</span>
+          {task.description ? <p className="mt-1 text-gray-700">{task.description}</p> : null}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const AdviceTask = ({ task }: { task?: MediationAdviceTask | null }) => {
+  if (!task) return null;
+
+  return (
+    <div className="mt-2 rounded-lg border border-rose-100 bg-rose-50/60 p-4">
+      <p className="font-medium text-gray-800">{task.title}</p>
+      {task.description ? <p className="mt-1 text-gray-700">{task.description}</p> : null}
+    </div>
   );
 };
 
@@ -89,6 +135,9 @@ const AdviceContent = ({
   const conversationStarters = advice.conversation_starters?.length
     ? advice.conversation_starters
     : advice.suggested_conversation_script;
+  const hasConversationStarters = Boolean(
+    conversationStarters?.some((item) => cleanAdviceListItem(item))
+  );
 
   return (
     <div className="space-y-4 text-gray-700">
@@ -129,8 +178,17 @@ const AdviceContent = ({
       <AdviceSection title="Suggested next steps" isVisible={Boolean(advice.suggested_next_steps?.length)}>
         <AdviceList items={advice.suggested_next_steps} />
       </AdviceSection>
-      <AdviceSection title="Conversation starters" isVisible={Boolean(conversationStarters?.length)}>
+      <AdviceSection title="Conversation starters" isVisible={hasConversationStarters}>
         <AdviceList items={conversationStarters} />
+      </AdviceSection>
+      <AdviceSection title="Tasks for Joris" isVisible={Boolean(advice.tasks_for_joris?.length)}>
+        <AdviceTaskList tasks={advice.tasks_for_joris} />
+      </AdviceSection>
+      <AdviceSection title="Tasks for Danfeng" isVisible={Boolean(advice.tasks_for_danfeng?.length)}>
+        <AdviceTaskList tasks={advice.tasks_for_danfeng} />
+      </AdviceSection>
+      <AdviceSection title="Joint task" isVisible={Boolean(advice.joint_task)}>
+        <AdviceTask task={advice.joint_task} />
       </AdviceSection>
       <AdviceSection title="What to avoid" isVisible={Boolean(advice.what_to_avoid?.length)}>
         <AdviceList items={advice.what_to_avoid} />

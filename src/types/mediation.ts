@@ -91,6 +91,11 @@ export interface PrivateReflectionOutput {
   error_message?: string | null;
 }
 
+export interface MediationAdviceTask {
+  title: string;
+  description: string;
+}
+
 export interface SharedMediationAdviceOutput {
   status?: AIOutputStatus;
   neutral_summary?: string | null;
@@ -100,6 +105,9 @@ export interface SharedMediationAdviceOutput {
   points_of_agreement?: string[] | null;
   points_of_misunderstanding?: string[] | null;
   suggested_conversation_script?: string[] | null;
+  tasks_for_joris?: MediationAdviceTask[] | null;
+  tasks_for_danfeng?: MediationAdviceTask[] | null;
+  joint_task?: MediationAdviceTask | null;
   what_to_avoid?: string[] | null;
   summary?: string | null;
   shared_understanding?: string | null;
