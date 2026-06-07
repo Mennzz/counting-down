@@ -1,5 +1,6 @@
 export interface LoginResponse {
-  sessionId: string;
+  sessionCookieId: string;
+  sessionId?: string;
   userType: string;
   createdAt: string;
   expiresAt: string;

@@ -22,9 +22,14 @@ export const login = async (accessKey: string): Promise<LoginResponse> => {
 
   const data = await response.json();
   const loginData = await processResponse<LoginResponse>(data);
+  const sessionCookieId = loginData.sessionCookieId ?? loginData.sessionId;
 
-  // Store session_id, expires_at, and user_type in cookies
-  setCookie("session_id", loginData.sessionId, loginData.expiresAt);
+  if (!sessionCookieId) {
+    throw new ApiError(500, "Login response did not include a session cookie id.");
+  }
+
+  // Store session_cookie_id, expires_at, and user_type in cookies
+  setCookie("session_cookie_id", sessionCookieId, loginData.expiresAt);
   setCookie("session_expires_at", loginData.expiresAt, loginData.expiresAt);
   setCookie("user_type", loginData.userType, loginData.expiresAt);
 
