@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, CheckCircle2, Circle, Clock, MessageCircleHeart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMediationSessions } from "@/hooks/use-mediation";
 import type { AIOutputStatus, MediationSessionListItem, MediationSessionStatus } from "@/types/mediation";
@@ -129,6 +132,12 @@ const SessionCardSkeleton = () => (
 
 export const MediationList = () => {
   const { data: sessions = [], isLoading, isError, error } = useMediationSessions();
+  const [showArchived, setShowArchived] = useState(false);
+
+  const visibleSessions = showArchived
+    ? sessions
+    : sessions.filter((session) => session.status !== "ARCHIVED");
+  const archivedCount = sessions.filter((session) => session.status === "ARCHIVED").length;
 
   return (
     <MediationPageShell
@@ -138,7 +147,9 @@ export const MediationList = () => {
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-gray-800">
-            {isLoading ? "Loading sessions" : `${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}`}
+            {isLoading
+              ? "Loading sessions"
+              : `${visibleSessions.length} ${visibleSessions.length === 1 ? "session" : "sessions"}`}
           </p>
           <p className="mt-1 text-sm text-gray-500">Pick up where the conversation left off.</p>
         </div>
@@ -149,6 +160,19 @@ export const MediationList = () => {
           </Link>
         </Button>
       </div>
+
+      {archivedCount > 0 ? (
+        <div className="mb-5 flex items-center gap-2">
+          <Checkbox
+            id="show-archived-sessions"
+            checked={showArchived}
+            onCheckedChange={(checked) => setShowArchived(Boolean(checked))}
+          />
+          <Label htmlFor="show-archived-sessions" className="text-sm font-normal text-gray-600 cursor-pointer">
+            Show archived sessions ({archivedCount})
+          </Label>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -185,8 +209,16 @@ export const MediationList = () => {
         </Card>
       ) : null}
 
+      {!isLoading && !isError && sessions.length > 0 && visibleSessions.length === 0 ? (
+        <Card className="border-rose-100 bg-white/75">
+          <CardContent className="p-6 text-center text-sm text-gray-500">
+            All sessions are archived. Check "Show archived sessions" to see them.
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="space-y-4">
-        {sessions.map((session) => {
+        {visibleSessions.map((session) => {
           const myPerspective = getPerspectiveState({
             submitted: session.has_my_perspective,
             exists: session.my_perspective_exists,
