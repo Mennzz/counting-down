@@ -1,6 +1,6 @@
 import { Airport } from "./airport";
 
-export type FlightStatus = "DRAFT" | "ACTIVE" | "CANCELLED";
+export type FlightStatus = "DRAFT" | "ACTIVE" | "CANCELLED" | "EXPIRED";
 
 export interface Flight {
     id: string;
@@ -26,8 +26,8 @@ export interface CreateFlightRequest {
 export interface UpdateFlightRequest {
     status?: FlightStatus;
     flightNumber?: string;
-    departureIcao?: string;
-    arrivalIcao?: string;
+    departureAirportIcao?: string;
+    arrivalAirportIcao?: string;
     departureAt?: string;
     arrivalAt?: string;
 }

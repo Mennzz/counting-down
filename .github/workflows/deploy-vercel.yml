@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: deploy-vercel-production
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -15,24 +19,19 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_CLI_VERSION: 47.0.5
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Pull Vercel environment information
-        run: npx vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
-
-      - name: Build project with Vercel
-        run: npx vercel build --prod --token "$VERCEL_TOKEN"
+        run: npx vercel@"$VERCEL_CLI_VERSION" pull --yes --environment=production --token "$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
-        run: npx vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+        run: npx vercel@"$VERCEL_CLI_VERSION" deploy --prod --yes --token "$VERCEL_TOKEN"
