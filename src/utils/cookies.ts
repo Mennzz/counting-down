@@ -27,7 +27,7 @@ export const deleteCookie = (name: string) => {
 };
 
 export const getSessionId = (): string | null => {
-  return getCookie("session_id");
+  return getCookie("session_cookie_id") ?? getCookie("session_id");
 };
 
 export const getSessionExpiry = (): string | null => {
@@ -53,6 +53,7 @@ export const isSessionValid = (): boolean => {
 };
 
 export const clearSession = () => {
+  deleteCookie("session_cookie_id");
   deleteCookie("session_id");
   deleteCookie("session_expires_at");
   deleteCookie("user_type");

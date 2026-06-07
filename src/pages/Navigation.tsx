@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Clock, Gift, Heart, Image, List, MessageSquare } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Clock, Gift, Heart, Image, List, MessageCircleHeart, MessageSquare } from "lucide-react";
 import { shouldShowAdventCalendar } from "@/utils/advent-calendar";
 
 interface NavigationProps {
@@ -8,6 +8,7 @@ interface NavigationProps {
 }
 
 const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
+  const navigate = useNavigate();
   const sections = [
     { id: "countdown", label: "Countdown", icon: Clock },
     { id: "advent", label: "Advent", icon: Gift, shouldShow: shouldShowAdventCalendar() },
@@ -15,6 +16,7 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
     { id: "todo", label: "Together List", icon: List },
     { id: "stats", label: "Our Stats", icon: Heart },
     { id: "messages", label: "Messages", icon: MessageSquare },
+    { id: "mediation", label: "Mediation", icon: MessageCircleHeart, route: "/mediation" },
   ];
 
   return (
@@ -35,6 +37,19 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
               if (section.shouldShow === false) return null; 
 
               const Icon = section.icon;
+              if (section.route) {
+                return (
+                  <Link
+                    key={section.id}
+                    to={section.route}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-full text-gray-600 transition-all duration-200 hover:bg-rose-50 hover:text-rose-500"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{section.label}</span>
+                  </Link>
+                );
+              }
+
               return (
                 <button
                   key={section.id}
@@ -56,14 +71,23 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
           <div className="md:hidden">
             <select
               value={activeSection}
-              onChange={(e) => setActiveSection(e.target.value)}
+              onChange={(e) => {
+                const section = sections.find((item) => item.id === e.target.value);
+                if (section?.route) {
+                  navigate(section.route);
+                  return;
+                }
+                setActiveSection(e.target.value);
+              }}
               className="bg-white/80 border border-rose-200 rounded-lg px-3 py-2 text-sm"
             >
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.label}
-                </option>
-              ))}
+              {sections.map((section) =>
+                section.shouldShow === false ? null : (
+                  <option key={section.id} value={section.id}>
+                    {section.label}
+                  </option>
+                )
+              )}
             </select>
           </div>
         </div>
