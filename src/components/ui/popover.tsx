@@ -9,9 +9,20 @@ const PopoverTrigger = PopoverPrimitive.Trigger
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
+    /**
+     * Render the content inside a portal (default). Set to `false` when this
+     * popover lives inside a Radix Dialog: a portaled popover renders on
+     * `document.body`, outside the dialog's scroll-lock subtree
+     * (react-remove-scroll), which blocks wheel scrolling on the popover's own
+     * scrollable content. Rendering in place keeps it inside that subtree.
+     * Radix Popper positions with `strategy: "fixed"`, so it is not clipped by
+     * the dialog's overflow.
+     */
+    portal?: boolean
+  }
+>(({ className, align = "center", sideOffset = 4, portal = true, ...props }, ref) => {
+  const content = (
     <PopoverPrimitive.Content
       ref={ref}
       align={align}
@@ -22,8 +33,10 @@ const PopoverContent = React.forwardRef<
       )}
       {...props}
     />
-  </PopoverPrimitive.Portal>
-))
+  )
+
+  return portal ? <PopoverPrimitive.Portal>{content}</PopoverPrimitive.Portal> : content
+})
 PopoverContent.displayName = PopoverPrimitive.Content.displayName
 
 export { Popover, PopoverTrigger, PopoverContent }
