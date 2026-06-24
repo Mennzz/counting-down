@@ -10,3 +10,18 @@ export interface Airport {
     createdAt: string;
     updatedAt?: string;
 }
+
+export interface CreateAirportRequest {
+    icao: string;
+    iata: string;
+    name: string;
+    city: string;
+    country: string;
+    longitude: number;
+    latitude: number;
+}
+
+export interface AirportSearchResponse {
+    results: Airport[];
+    count: number;
+}
