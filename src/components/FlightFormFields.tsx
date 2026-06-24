@@ -1,10 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AirportCombobox } from "@/components/AirportCombobox";
 import { FlightFormValues } from "@/components/flight-form-utils";
-import { useAirports } from "@/hooks/use-airports";
 import { FlightStatus } from "@/types/flight";
-import { Loader2 } from "lucide-react";
 
 export interface FlightFormFieldsProps {
   values: FlightFormValues;
@@ -12,7 +11,6 @@ export interface FlightFormFieldsProps {
 }
 
 export const FlightFormFields = ({ values, onChange }: FlightFormFieldsProps) => {
-  const { data: airports = [], isLoading: isLoadingAirports } = useAirports();
   const hasInvalidTimes =
     values.departureAt.length > 0 &&
     values.arrivalAt.length > 0 &&
@@ -34,54 +32,22 @@ export const FlightFormFields = ({ values, onChange }: FlightFormFieldsProps) =>
 
       <div className="space-y-2">
         <Label htmlFor="departure-airport">Departure Airport *</Label>
-        {isLoadingAirports ? (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="h-4 w-4 animate-spin text-rose-500" />
-            <span className="ml-2 text-sm text-gray-600">Loading airports...</span>
-          </div>
-        ) : (
-          <Select
-            value={values.departureAirportIcao}
-            onValueChange={(value) => onChange("departureAirportIcao", value)}
-          >
-            <SelectTrigger className="border-rose-200 focus:border-rose-400 focus:ring-rose-400">
-              <SelectValue placeholder="Select departure airport" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[200px] max-w-[400px]">
-              {airports.map((airport) => (
-                <SelectItem key={airport.id} value={airport.icao}>
-                  {airport.name} ({airport.iata}) - {airport.city}, {airport.country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <AirportCombobox
+          id="departure-airport"
+          value={values.departureAirportIcao}
+          onChange={(icao) => onChange("departureAirportIcao", icao)}
+          placeholder="Select departure airport"
+        />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="arrival-airport">Arrival Airport *</Label>
-        {isLoadingAirports ? (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="h-4 w-4 animate-spin text-rose-500" />
-            <span className="ml-2 text-sm text-gray-600">Loading airports...</span>
-          </div>
-        ) : (
-          <Select
-            value={values.arrivalAirportIcao}
-            onValueChange={(value) => onChange("arrivalAirportIcao", value)}
-          >
-            <SelectTrigger className="border-rose-200 focus:border-rose-400 focus:ring-rose-400">
-              <SelectValue placeholder="Select arrival airport" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[200px] max-w-[400px]">
-              {airports.map((airport) => (
-                <SelectItem key={airport.id} value={airport.icao}>
-                  {airport.name} ({airport.iata}) - {airport.city}, {airport.country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <AirportCombobox
+          id="arrival-airport"
+          value={values.arrivalAirportIcao}
+          onChange={(icao) => onChange("arrivalAirportIcao", icao)}
+          placeholder="Select arrival airport"
+        />
       </div>
 
       <div className="space-y-2">
