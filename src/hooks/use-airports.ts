@@ -12,10 +12,10 @@ export const useAirports = () => {
   });
 };
 
-export const useAirportSearch = (query: string) => {
+export const useAirportSearch = (query: string, k?: number) => {
   return useQuery({
-    queryKey: [...AIRPORTS_QUERY_KEY, "search", query],
-    queryFn: () => airportApi.searchAirports(query),
+    queryKey: [...AIRPORTS_QUERY_KEY, "search", query, k],
+    queryFn: () => airportApi.searchAirports(query, k),
     enabled: query.trim().length >= 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

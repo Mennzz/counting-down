@@ -20,3 +20,8 @@ export interface CreateAirportRequest {
     longitude: number;
     latitude: number;
 }
+
+export interface AirportSearchResponse {
+    results: Airport[];
+    count: number;
+}

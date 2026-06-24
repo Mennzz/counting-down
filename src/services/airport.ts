@@ -1,5 +1,5 @@
 import { API_BASE_URL, ApiError } from "./api";
-import { Airport, CreateAirportRequest } from "@/types/airport";
+import { Airport, AirportSearchResponse, CreateAirportRequest } from "@/types/airport";
 import { processResponse } from "@/utils/api";
 import { camelToSnake } from "@/utils/utils";
 import { getSessionId } from "@/utils/cookies";
@@ -27,11 +27,16 @@ export const airportApi = {
     return await processResponse<Airport[]>(await response.json());
   },
 
-  searchAirports: async (query: string): Promise<Airport[]> => {
+  searchAirports: async (query: string, k?: number): Promise<Airport[]> => {
     const sessionId = requireSession();
 
+    const params = new URLSearchParams({ query });
+    if (k !== undefined) {
+      params.set("k", String(k));
+    }
+
     const response = await fetch(
-      `${API_BASE_URL}/airports/search?query=${encodeURIComponent(query)}`,
+      `${API_BASE_URL}/airports/search?${params.toString()}`,
       {
         headers: {
           "X-Session-Id": sessionId,
@@ -41,7 +46,10 @@ export const airportApi = {
     if (!response.ok) {
       throw new ApiError(response.status, "Failed to search airports");
     }
-    return await processResponse<Airport[]>(await response.json());
+    const { results } = await processResponse<AirportSearchResponse>(
+      await response.json()
+    );
+    return results;
   },
 
   getAirportByCode: async (code: string): Promise<Airport> => {
