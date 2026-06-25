@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       "/api/v1": {
-        // target: "https://counting-down-fastapi-2ad079e42b08.herokuapp.com/",
-        target: "http://localhost:8000",
+        target: "https://counting-down-fastapi-2ad079e42b08.herokuapp.com/",
+        // target: "http://localhost:8000",
         changeOrigin: false,
       },
     },
