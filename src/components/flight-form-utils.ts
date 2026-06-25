@@ -1,4 +1,5 @@
 import { Flight, FlightStatus } from "@/types/flight";
+import { FlightLookupCandidate, mapCandidateStatus } from "@/types/flightLookup";
 
 export interface FlightFormValues {
   flightNumber: string;
@@ -36,6 +37,19 @@ export const createFlightFormValuesFromFlight = (flight: Flight): FlightFormValu
   departureAt: toDateTimeLocalValue(flight.departureAt),
   arrivalAt: toDateTimeLocalValue(flight.arrivalAt),
   status: flight.status,
+});
+
+export const createFlightFormValuesFromCandidate = (candidate: FlightLookupCandidate): FlightFormValues => ({
+  flightNumber: candidate.flightNumber,
+  departureAirportIcao: candidate.departureAirport.icao ?? "",
+  arrivalAirportIcao: candidate.arrivalAirport.icao ?? "",
+  departureAt: toDateTimeLocalValue(
+    candidate.scheduledDepartureTimeLocal ?? candidate.scheduledDepartureTimeUtc ?? ""
+  ),
+  arrivalAt: toDateTimeLocalValue(
+    candidate.scheduledArrivalTimeLocal ?? candidate.scheduledArrivalTimeUtc ?? ""
+  ),
+  status: mapCandidateStatus(candidate.status),
 });
 
 export const isFlightFormValid = (values: FlightFormValues): boolean => (
