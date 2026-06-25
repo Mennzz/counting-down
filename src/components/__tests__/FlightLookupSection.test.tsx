@@ -60,7 +60,10 @@ describe("FlightLookupSection", () => {
     await userEvent.type(screen.getByRole("textbox"), "KL123");
     await userEvent.click(screen.getByRole("button", { name: /lookup/i }));
     expect(flightLookupApi.lookupFlight).toHaveBeenCalledTimes(1);
-    expect(flightLookupApi.lookupFlight).toHaveBeenCalledWith("KL123");
+    expect(flightLookupApi.lookupFlight).toHaveBeenCalledWith({
+      flightNumber: "KL123",
+      date: undefined,
+    });
   });
 
   it("does not send duplicate concurrent requests on rapid clicks", async () => {

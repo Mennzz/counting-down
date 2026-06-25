@@ -14,12 +14,16 @@ interface FlightLookupSectionProps {
 
 export const FlightLookupSection = ({ onCandidateSelect, onManualEntry }: FlightLookupSectionProps) => {
   const [flightNumberInput, setFlightNumberInput] = useState("");
+  const [dateInput, setDateInput] = useState("");
   const lookupMutation = useFlightLookup();
 
   const handleLookup = () => {
     const trimmed = flightNumberInput.trim();
     if (!trimmed || lookupMutation.isPending) return;
-    lookupMutation.mutate(trimmed);
+    lookupMutation.mutate({
+      flightNumber: trimmed,
+      date: dateInput || undefined,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -59,6 +63,21 @@ export const FlightLookupSection = ({ onCandidateSelect, onManualEntry }: Flight
             </span>
           </Button>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="lookup-date">
+          Departure date{" "}
+          <span className="text-muted-foreground font-normal">(optional — leave empty for the next week)</span>
+        </Label>
+        <Input
+          id="lookup-date"
+          type="date"
+          value={dateInput}
+          onChange={(e) => setDateInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={lookupMutation.isPending}
+        />
       </div>
 
       {/* Results */}

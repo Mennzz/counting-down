@@ -3,10 +3,17 @@ import { FlightLookupResponse } from "@/types/flightLookup";
 import { processResponse } from "@/utils/api";
 import { getSessionId } from "@/utils/cookies";
 
+export interface FlightLookupRequest {
+  flightNumber: string;
+  /** Optional ISO date (YYYY-MM-DD) to look up flights on a specific day. */
+  date?: string;
+}
+
 export const flightLookupApi = {
-  lookupFlight: async (flightNumber: string): Promise<FlightLookupResponse> => {
+  lookupFlight: async ({ flightNumber, date }: FlightLookupRequest): Promise<FlightLookupResponse> => {
     const sessionId = getSessionId();
     const params = new URLSearchParams({ flightNumber });
+    if (date) params.set("date", date);
     const response = await fetch(`${API_BASE_URL}/flights/lookup?${params}`, {
       headers: {
         ...(sessionId ? { "X-Session-Id": sessionId } : {}),
