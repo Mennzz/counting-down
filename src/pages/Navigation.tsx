@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Clock, Gift, Heart, Image, List, MessageCircleHeart, MessageSquare } from "lucide-react";
+import { Clock, Gift, HandHeart, Heart, Image, List, MessageCircleHeart, MessageSquare } from "lucide-react";
 import { shouldShowAdventCalendar } from "@/utils/advent-calendar";
 
 interface NavigationProps {
@@ -16,6 +16,7 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
     { id: "todo", label: "Together List", icon: List },
     { id: "stats", label: "Our Stats", icon: Heart },
     { id: "messages", label: "Messages", icon: MessageSquare },
+    { id: "boundaries-agreements", label: "Boundaries & Agreements", icon: HandHeart, route: "/boundaries-agreements" },
     { id: "mediation", label: "Mediation", icon: MessageCircleHeart, route: "/mediation" },
   ];
 

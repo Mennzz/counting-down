@@ -14,6 +14,10 @@ import { MediationList } from "./pages/mediation/MediationList";
 import { MediationNew } from "./pages/mediation/MediationNew";
 import { MediationPerspectivePage } from "./pages/mediation/MediationPerspectivePage";
 import { isSessionValid } from "@/utils/cookies";
+import { AgreementDetailPage } from "./pages/relationship-care/AgreementDetail";
+import { AgreementEditorPage } from "./pages/relationship-care/AgreementEditor";
+import { RelationshipCareOverviewPage } from "./pages/relationship-care/RelationshipCareOverview";
+import { PersonalGoalDetailPage } from "./pages/relationship-care/PersonalGoalDetail";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +77,46 @@ const App = () => {
               element={
                 <AuthenticatedRoute>
                   <MediationDiscussionPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/boundaries-agreements"
+              element={
+                <AuthenticatedRoute>
+                  <RelationshipCareOverviewPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/boundaries-agreements/goals/:goalId"
+              element={
+                <AuthenticatedRoute>
+                  <PersonalGoalDetailPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/boundaries-agreements/agreements/new"
+              element={
+                <AuthenticatedRoute>
+                  <AgreementEditorPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/boundaries-agreements/agreements/:agreementId"
+              element={
+                <AuthenticatedRoute>
+                  <AgreementDetailPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/boundaries-agreements/agreements/:agreementId/revise"
+              element={
+                <AuthenticatedRoute>
+                  <AgreementEditorPage />
                 </AuthenticatedRoute>
               }
             />
