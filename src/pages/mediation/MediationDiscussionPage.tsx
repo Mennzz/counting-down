@@ -21,7 +21,12 @@ import type {
   SharedMediationAdviceOutput,
 } from "@/types/mediation";
 import { MediationPageShell, SessionStateNotice } from "./MediationShared";
-import { canDiscuss, isAdviceAvailable, isSessionReadOnly } from "./mediation-ui";
+import {
+  canDiscuss,
+  isAdviceAvailable,
+  isSessionReadOnly,
+  mediationCommentAuthorLabel,
+} from "./mediation-ui";
 
 const cleanAdviceListItem = (item: unknown): string | null => {
   if (typeof item !== "string") return null;
@@ -291,7 +296,7 @@ const CommentCard = ({
       <CardContent className="space-y-4 p-5">
         <div>
           <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-            {comment.author_user_type ?? "Someone"} 
+            {mediationCommentAuthorLabel(comment)}
           </span>
           {/* Span with time */}
           <span className="text-xs text-gray-500 ml-2">
@@ -322,7 +327,7 @@ const CommentCard = ({
             {comment.replies.map((replyComment) => (
               <div key={replyComment.id} className="rounded-lg bg-white/80 p-3">
                 <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  {replyComment.author_user_type ?? "Mediator"}
+                  {mediationCommentAuthorLabel(replyComment)}
                 </span>
                 <span className="text-xs text-gray-500 ml-2">
                   {new Date(replyComment.created_at).toLocaleDateString(

@@ -168,6 +168,8 @@ export interface MediationComment {
   session_id: string;
   parent_comment_id?: string | null;
   author_user_type?: UserType | null;
+  author_type?: "USER" | "AI";
+  ai_author_type?: "MEDIATION_ASSISTANT" | "XIAO_BAO" | null;
   content: string;
   ai_reply?: string | null;
   ai_reply_status?: AIOutputStatus;

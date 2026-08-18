@@ -11,41 +11,24 @@ import PhotoGallery from "./PhotoGallery";
 import TodoList from "./TodoList";
 import RelationshipStats from "./RelationshipStats";
 import MessageForm from "./MessageForm";
-import { Login } from "./Login";
-import { isSessionValid } from "@/utils/cookies";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("countdown");
-  const [isAuthenticated, setIsAuthenticated] = useState(() => isSessionValid());
   const [hasCompletedStartup, setHasCompletedStartup] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setHasCompletedStartup(false);
-    }
-  }, [isAuthenticated]);
 
   const startupQuery = useQuery({
     queryKey: [...FLIGHTS_QUERY_KEY, "nextFlight"],
     queryFn: flightApi.getNextFlight,
     staleTime: 60_000,
     retry: 0,
-    enabled: isAuthenticated && !hasCompletedStartup,
+    enabled: !hasCompletedStartup,
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     if (startupQuery.status === "success" || startupQuery.status === "error") {
       setHasCompletedStartup(true);
     }
-  }, [isAuthenticated, startupQuery.status]);
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
+  }, [startupQuery.status]);
 
   const renderSection = () => {
     switch (activeSection) {
@@ -65,11 +48,6 @@ const Index = () => {
         return <CountdownSection />;
     }
   };
-
-  // If not authenticated, show login page
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
-  }
 
   if (!hasCompletedStartup && startupQuery.fetchStatus === "fetching") {
     return <AppColdStartLoader />;

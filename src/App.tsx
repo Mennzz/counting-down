@@ -3,8 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import type { ReactNode } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
@@ -18,17 +17,26 @@ import { AgreementDetailPage } from "./pages/relationship-care/AgreementDetail";
 import { AgreementEditorPage } from "./pages/relationship-care/AgreementEditor";
 import { RelationshipCareOverviewPage } from "./pages/relationship-care/RelationshipCareOverview";
 import { PersonalGoalDetailPage } from "./pages/relationship-care/PersonalGoalDetail";
+import { XiaoBaoProvider } from "@/hooks/use-xiaobao";
+import { XiaoBaoLauncher } from "@/components/xiaobao/XiaoBaoLauncher";
+import XiaoBaoPage from "./pages/XiaoBaoPage";
+import RelationshipProfilePage from "./pages/RelationshipProfilePage";
 
 const queryClient = new QueryClient();
 
-const AuthenticatedRoute = ({ children }: { children: ReactNode }) => {
+const AuthenticatedShell = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => isSessionValid());
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  return <>{children}</>;
+  return (
+    <XiaoBaoProvider>
+      <Outlet />
+      <XiaoBaoLauncher />
+    </XiaoBaoProvider>
+  );
 };
 
 const App = () => {
@@ -39,89 +47,22 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route
-              path="/mediation"
-              element={
-                <AuthenticatedRoute>
-                  <MediationList />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/mediation/new"
-              element={
-                <AuthenticatedRoute>
-                  <MediationNew />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/mediation/:sessionId"
-              element={
-                <AuthenticatedRoute>
-                  <MediationDashboard />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/mediation/:sessionId/perspective"
-              element={
-                <AuthenticatedRoute>
-                  <MediationPerspectivePage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/mediation/:sessionId/discussion"
-              element={
-                <AuthenticatedRoute>
-                  <MediationDiscussionPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/boundaries-agreements"
-              element={
-                <AuthenticatedRoute>
-                  <RelationshipCareOverviewPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/boundaries-agreements/goals/:goalId"
-              element={
-                <AuthenticatedRoute>
-                  <PersonalGoalDetailPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/boundaries-agreements/agreements/new"
-              element={
-                <AuthenticatedRoute>
-                  <AgreementEditorPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/boundaries-agreements/agreements/:agreementId"
-              element={
-                <AuthenticatedRoute>
-                  <AgreementDetailPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/boundaries-agreements/agreements/:agreementId/revise"
-              element={
-                <AuthenticatedRoute>
-                  <AgreementEditorPage />
-                </AuthenticatedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route element={<AuthenticatedShell />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/xiaobao" element={<XiaoBaoPage />} />
+              <Route path="/relationship-context" element={<RelationshipProfilePage />} />
+              <Route path="/mediation" element={<MediationList />} />
+              <Route path="/mediation/new" element={<MediationNew />} />
+              <Route path="/mediation/:sessionId" element={<MediationDashboard />} />
+              <Route path="/mediation/:sessionId/perspective" element={<MediationPerspectivePage />} />
+              <Route path="/mediation/:sessionId/discussion" element={<MediationDiscussionPage />} />
+              <Route path="/boundaries-agreements" element={<RelationshipCareOverviewPage />} />
+              <Route path="/boundaries-agreements/goals/:goalId" element={<PersonalGoalDetailPage />} />
+              <Route path="/boundaries-agreements/agreements/new" element={<AgreementEditorPage />} />
+              <Route path="/boundaries-agreements/agreements/:agreementId" element={<AgreementDetailPage />} />
+              <Route path="/boundaries-agreements/agreements/:agreementId/revise" element={<AgreementEditorPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

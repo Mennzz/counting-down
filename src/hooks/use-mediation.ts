@@ -10,12 +10,31 @@ import type {
 
 export const MEDIATION_QUERY_KEY = ["mediation"];
 
-const sessionsKey = [...MEDIATION_QUERY_KEY, "sessions"];
-const sessionKey = (sessionId: string) => [...sessionsKey, sessionId];
-const perspectiveKey = (sessionId: string) => [...sessionKey(sessionId), "perspective", "me"];
+export const mediationKeys = {
+  all: MEDIATION_QUERY_KEY,
+  sessions: [...MEDIATION_QUERY_KEY, "sessions"],
+  session: (sessionId: string) => [...MEDIATION_QUERY_KEY, "sessions", sessionId],
+  perspective: (sessionId: string) => [
+    ...MEDIATION_QUERY_KEY,
+    "sessions",
+    sessionId,
+    "perspective",
+    "me",
+  ],
+  comments: (sessionId: string) => [
+    ...MEDIATION_QUERY_KEY,
+    "sessions",
+    sessionId,
+    "comments",
+  ],
+};
+
+const sessionsKey = mediationKeys.sessions;
+const sessionKey = mediationKeys.session;
+const perspectiveKey = mediationKeys.perspective;
 const reflectionKey = (sessionId: string) => [...sessionKey(sessionId), "reflection", "me"];
 const adviceKey = (sessionId: string) => [...sessionKey(sessionId), "advice"];
-const commentsKey = (sessionId: string) => [...sessionKey(sessionId), "comments"];
+const commentsKey = mediationKeys.comments;
 
 export const shouldPollSession = (session?: MediationSessionDetailResponse | null) => {
   if (!session) return false;

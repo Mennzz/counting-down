@@ -1,4 +1,12 @@
-import type { MediationSessionDetailResponse, MediationSessionStatus } from "@/types/mediation";
+import type {
+  MediationComment,
+  MediationSessionDetailResponse,
+  MediationSessionStatus,
+} from "@/types/mediation";
+
+export const mediationCommentAuthorLabel = (comment: MediationComment) =>
+  comment.author_user_type ??
+  (comment.ai_author_type === "XIAO_BAO" ? "Xiao Bao" : "Mediator");
 
 export const statusLabel = (status: MediationSessionStatus) =>
   status

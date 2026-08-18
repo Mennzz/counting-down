@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Clock, Gift, HandHeart, Heart, Image, List, MessageCircleHeart, MessageSquare } from "lucide-react";
+import { Clock, Gift, HandHeart, Heart, Image, List, MessageCircleHeart, MessageSquare, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { shouldShowAdventCalendar } from "@/utils/advent-calendar";
 
 interface NavigationProps {
@@ -66,10 +67,15 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
                 </button>
               );
             })}
+            <Button asChild variant="ghost" size="icon" className="ml-1 text-gray-500 hover:bg-rose-50 hover:text-rose-600">
+              <Link to="/relationship-context" aria-label="Relationship settings" title="Relationship settings">
+                <Settings className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
 
           {/* Mobile menu - simplified */}
-          <div className="md:hidden">
+          <div className="flex items-center gap-1 md:hidden">
             <select
               value={activeSection}
               onChange={(e) => {
@@ -90,6 +96,11 @@ const Navigation = ({ activeSection, setActiveSection }: NavigationProps) => {
                 )
               )}
             </select>
+            <Button asChild variant="ghost" size="icon" className="text-gray-500 hover:bg-rose-50 hover:text-rose-600">
+              <Link to="/relationship-context" aria-label="Relationship settings" title="Relationship settings">
+                <Settings className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
