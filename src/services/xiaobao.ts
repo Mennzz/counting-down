@@ -2,8 +2,14 @@ import { API_BASE_URL, ApiError } from "@/services/api";
 import type {
   XiaoBaoConversation,
   XiaoBaoConversationDetail,
+  XiaoBaoInbox,
+  XiaoBaoInboxMessage,
+  XiaoBaoInboxUnreadCount,
   XiaoBaoProposal,
   XiaoBaoProposalPayload,
+  XiaoBaoRoutine,
+  XiaoBaoRoutineInput,
+  XiaoBaoRoutineRunList,
   XiaoBaoSseEvent,
 } from "@/types/xiaobao";
 import { processResponse } from "@/utils/api";
@@ -22,6 +28,18 @@ const headers = (hasBody = false): HeadersInit => {
 
 const body = (value: unknown) => JSON.stringify(camelToSnake(value));
 
+// `local_date` is a calendar choice in the selected timezone, not a UTC instant. The shared
+// response normalizer intentionally converts date-looking values to instants, so restore this
+// one schedule field before it reaches the reminder editor or display helpers.
+const preserveLocalScheduleDates = <T,>(value: T): T => {
+  if (Array.isArray(value)) return value.map(preserveLocalScheduleDates) as T;
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+    key,
+    key === "localDate" && typeof item === "string" ? item.slice(0, 10) : preserveLocalScheduleDates(item),
+  ])) as T;
+};
+
 const apiError = async (response: Response): Promise<ApiError> => {
   const data = await response.json().catch(() => ({}));
   const detail = (data as { detail?: unknown }).detail;
@@ -35,7 +53,7 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   const response = await fetch(`${BASE_PATH}${path}`, init);
   if (!response.ok) throw await apiError(response);
   if (response.status === 204) return undefined as T;
-  return processResponse<T>(await response.json());
+  return preserveLocalScheduleDates(await processResponse<T>(await response.json()));
 };
 
 export async function consumeSse(
@@ -127,4 +145,47 @@ export const xiaoBaoApi = {
     request<XiaoBaoProposal>(`/proposals/${id}/accept`, { method: "POST", headers: headers() }),
   rejectProposal: (id: string) =>
     request<XiaoBaoProposal>(`/proposals/${id}/reject`, { method: "POST", headers: headers() }),
+  listRoutines: () => request<XiaoBaoRoutine[]>("/routines", { headers: headers() }),
+  createRoutine: (input: XiaoBaoRoutineInput) =>
+    request<XiaoBaoRoutine>("/routines", {
+      method: "POST",
+      headers: headers(true),
+      body: body(input),
+    }),
+  getRoutine: (id: string) => request<XiaoBaoRoutine>(`/routines/${id}`, { headers: headers() }),
+  updateRoutine: (id: string, input: Partial<XiaoBaoRoutineInput>) =>
+    request<XiaoBaoRoutine>(`/routines/${id}`, {
+      method: "PATCH",
+      headers: headers(true),
+      body: body(input),
+    }),
+  deleteRoutine: (id: string) =>
+    request<void>(`/routines/${id}`, { method: "DELETE", headers: headers() }),
+  pauseRoutine: (id: string) =>
+    request<XiaoBaoRoutine>(`/routines/${id}/pause`, { method: "POST", headers: headers() }),
+  resumeRoutine: (id: string) =>
+    request<XiaoBaoRoutine>(`/routines/${id}/resume`, { method: "POST", headers: headers() }),
+  listRoutineRuns: (id: string) =>
+    request<XiaoBaoRoutineRunList>(`/routines/${id}/runs`, { headers: headers() }),
+  getInbox: ({
+    limit = 50,
+    routineId,
+    cursor,
+  }: {
+    limit?: number;
+    routineId?: string;
+    cursor?: string;
+  } = {}) => {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (routineId) params.set("routine_id", routineId);
+    if (cursor) params.set("cursor", cursor);
+    return request<XiaoBaoInbox>(`/inbox?${params.toString()}`, { headers: headers() });
+  },
+  getInboxUnreadCount: () =>
+    request<XiaoBaoInboxUnreadCount>("/inbox/unread-count", { headers: headers() }),
+  markInboxMessageRead: (messageId: string) =>
+    request<XiaoBaoInboxMessage>(`/inbox/${messageId}/read`, {
+      method: "POST",
+      headers: headers(),
+    }),
 };

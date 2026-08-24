@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { ArrowUp, History, Loader2, Plus, RefreshCw, Square, Trash2 } from "lucide-react";
+import { ArrowUp, History, Inbox, Loader2, Plus, RefreshCw, Repeat2, Square, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -99,10 +99,15 @@ export function XiaoBaoChat({
           />
           <div className="min-w-0">
             <h1 className="font-semibold text-rose-950">Xiao Bao</h1>
-            <p className="truncate text-xs text-muted-foreground">A warm little helper for your relationship</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Xiao Bao routines and reminders">
+            <Link to="/xiaobao/routines" onClick={() => xiaoBao.setIsOpen(false)}><Repeat2 className="h-4 w-4" /></Link>
+          </Button>
+          <Button asChild variant="ghost" size="icon" aria-label="Xiao Bao inbox">
+            <Link to="/xiaobao/inbox" onClick={() => xiaoBao.setIsOpen(false)}><Inbox className="h-4 w-4" /></Link>
+          </Button>
           <Button variant="ghost" size="icon" aria-label="Conversation history" onClick={() => setShowHistory((value) => !value)}>
             <History className="h-4 w-4" />
           </Button>

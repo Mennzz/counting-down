@@ -5,7 +5,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useBackendReady } from "@/hooks/use-backend-ready";
 import { useXiaoBao } from "@/hooks/use-xiaobao";
+import { useXiaoBaoInboxUnreadCount } from "@/hooks/use-xiaobao-routines";
 import { XiaoBaoChat } from "./XiaoBaoChat";
 import { XiaoBaoMascot } from "./XiaoBaoMascot";
 
@@ -13,12 +15,15 @@ export const XIAOBAO_SLEEP_DELAY_MS = 120_000;
 
 export function XiaoBaoLauncher() {
   const { isOpen, setIsOpen } = useXiaoBao();
+  const backendReady = useBackendReady();
+  const unread = useXiaoBaoInboxUnreadCount();
   const location = useLocation();
   const [isSleeping, setIsSleeping] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const isInteracting = isHovered || isFocused;
+  const isFullScreenChat = location.pathname === "/xiaobao" || location.pathname === "/xiaobao/";
 
   const wake = useCallback(() => {
     if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
@@ -34,6 +39,8 @@ export function XiaoBaoLauncher() {
       if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
     };
   }, [wake]);
+
+  if (backendReady.data !== true || isFullScreenChat) return null;
 
   return (
     <>
@@ -65,6 +72,14 @@ export function XiaoBaoLauncher() {
               size={58}
               variant="hero"
             />
+            {Boolean(unread.data?.unreadCount) && (
+              <span
+                className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-rose-600 px-1 text-[10px] font-bold text-white"
+                aria-label={`${unread.data?.unreadCount} unread Xiao Bao messages`}
+              >
+                {Math.min(unread.data?.unreadCount ?? 0, 99)}
+              </span>
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="left">Talk with Xiao Bao</TooltipContent>
@@ -86,7 +101,13 @@ export function XiaoBaoLauncher() {
           <XiaoBaoChat
             reserveCloseGutter
             headerAction={(
-              <Button asChild variant="ghost" size="icon" aria-label="Expand Xiao Bao">
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="hidden md:inline-flex"
+                aria-label="Expand Xiao Bao"
+              >
                 <Link
                   to="/xiaobao"
                   state={{ xiaoBaoReturnTo: `${location.pathname}${location.search}${location.hash}` }}
