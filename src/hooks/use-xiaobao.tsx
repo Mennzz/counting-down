@@ -15,6 +15,7 @@ import { RELATIONSHIP_CARE_QUERY_KEY } from "@/hooks/use-relationship-care";
 import { mediationKeys } from "@/hooks/use-mediation";
 import { TODOS_QUERY_KEY } from "@/hooks/use-todos";
 import { useToast } from "@/hooks/use-toast";
+import { XIAOBAO_ROUTINES_QUERY_KEY } from "@/hooks/use-xiaobao-routines";
 import { xiaoBaoApi } from "@/services/xiaobao";
 import type {
   XiaoBaoConversation,
@@ -251,7 +252,9 @@ export function XiaoBaoProvider({ children }: { children: ReactNode }) {
         proposals: current.proposals.map((item) => (item.id === updated.id ? updated : item)),
       }));
       if (action === "accept") {
-        if (proposal.type === "TOGETHER_LIST_ITEM") {
+        if (proposal.type === "ROUTINE" || proposal.type === "REMINDER") {
+          await queryClient.invalidateQueries({ queryKey: XIAOBAO_ROUTINES_QUERY_KEY });
+        } else if (proposal.type === "TOGETHER_LIST_ITEM") {
           await queryClient.invalidateQueries({ queryKey: TODOS_QUERY_KEY });
         } else if (proposal.type === "MEDIATION_SESSION") {
           await queryClient.invalidateQueries({ queryKey: mediationKeys.sessions });

@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => {
       host: "::",
       port: 8080,
       proxy: {
+        "/health": {
+          target: backendProxyTarget,
+          changeOrigin: false,
+        },
         "/api/v1": {
           target: backendProxyTarget,
           changeOrigin: false,

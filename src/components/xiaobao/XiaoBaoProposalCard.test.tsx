@@ -8,9 +8,10 @@ import { XiaoBaoProposalCard } from "./XiaoBaoProposalCard";
 const updateProposal = vi.fn();
 const acceptProposal = vi.fn();
 const rejectProposal = vi.fn();
+const setIsOpen = vi.fn();
 
 vi.mock("@/hooks/use-xiaobao", () => ({
-  useXiaoBao: () => ({ updateProposal, acceptProposal, rejectProposal }),
+  useXiaoBao: () => ({ updateProposal, acceptProposal, rejectProposal, setIsOpen }),
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -131,5 +132,74 @@ describe("Xiao Bao mediation proposal cards", () => {
       "data-animated",
       "true",
     );
+  });
+
+  it("reviews an exact, static one-time reminder before setting it", async () => {
+    const proposal: XiaoBaoProposal = {
+      ...baseProposal,
+      ownerUserType: "Joris",
+      status: "PENDING",
+      type: "REMINDER",
+      payload: {
+        kind: "REMINDER",
+        name: "Cozy date",
+        instruction: null,
+        message: "Plan our cozy mini-date.",
+        schedule: {
+          frequency: "ONCE",
+          localDate: "2026-08-28",
+          localTime: "12:00",
+          timezone: "Europe/Stockholm",
+          weekdays: [],
+        },
+        contextProfile: "RELATIONSHIP_CARE",
+      },
+    } as XiaoBaoProposal;
+
+    render(
+      <MemoryRouter>
+        <XiaoBaoProposalCard proposal={proposal} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Cozy date")).toBeInTheDocument();
+    expect(screen.getByText("Only you")).toBeInTheDocument();
+    expect(screen.getByText("Plan our cozy mini-date.")).toBeInTheDocument();
+    expect(acceptProposal).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Set reminder" }));
+    await waitFor(() => expect(acceptProposal).toHaveBeenCalledWith(proposal));
+  });
+
+  it("closes Xiao Bao before opening an accepted reminder's management page", () => {
+    const proposal: XiaoBaoProposal = {
+      ...baseProposal,
+      ownerUserType: "Joris",
+      status: "ACCEPTED",
+      type: "REMINDER",
+      payload: {
+        kind: "REMINDER",
+        name: "Cozy date",
+        instruction: null,
+        message: "Plan our cozy mini-date.",
+        schedule: {
+          frequency: "ONCE",
+          localDate: "2026-08-28",
+          localTime: "12:00",
+          timezone: "Europe/Stockholm",
+          weekdays: [],
+        },
+        contextProfile: "RELATIONSHIP_CARE",
+      },
+    } as XiaoBaoProposal;
+
+    render(
+      <MemoryRouter>
+        <XiaoBaoProposalCard proposal={proposal} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("link", { name: "Manage routines & reminders" }));
+    expect(setIsOpen).toHaveBeenCalledWith(false);
   });
 });
