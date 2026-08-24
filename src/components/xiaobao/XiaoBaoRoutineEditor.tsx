@@ -277,7 +277,7 @@ export function XiaoBaoRoutineEditor({
         ) : (
           <p className="flex items-start gap-2"><Eye className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />Xiao Bao may read current relationship context and active Together List items. It cannot add, edit, complete, or delete list items.</p>
         )}
-        <p className="flex items-start gap-2"><CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />Messages arrive in your private Xiao Bao inbox. No push notifications yet.</p>
+        <p className="flex items-start gap-2"><CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />Messages always arrive in your private Xiao Bao inbox. You can optionally enable private device alerts in Notifications.</p>
         <p className="flex items-start gap-2"><CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />Event-based triggers, such as an anniversary approaching or a stalled goal, aren’t supported yet. They are separate from reminders and routines.</p>
       </div>
 

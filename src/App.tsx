@@ -23,6 +23,7 @@ import XiaoBaoPage from "./pages/XiaoBaoPage";
 import RelationshipProfilePage from "./pages/RelationshipProfilePage";
 import XiaoBaoInboxPage from "./pages/XiaoBaoInboxPage";
 import XiaoBaoRoutinesPage from "./pages/XiaoBaoRoutinesPage";
+import XiaoBaoNotificationsPage from "./pages/XiaoBaoNotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => {
               <Route path="/xiaobao" element={<XiaoBaoPage />} />
               <Route path="/xiaobao/routines" element={<XiaoBaoRoutinesPage />} />
               <Route path="/xiaobao/inbox" element={<XiaoBaoInboxPage />} />
+              <Route path="/xiaobao/notifications" element={<XiaoBaoNotificationsPage />} />
               <Route path="/relationship-context" element={<RelationshipProfilePage />} />
               <Route path="/mediation" element={<MediationList />} />
               <Route path="/mediation/new" element={<MediationNew />} />

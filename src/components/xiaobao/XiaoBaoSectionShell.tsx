@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, Inbox, MessageCircleHeart, Repeat2 } from "lucide-react";
+import { ArrowLeft, Bell, Inbox, MessageCircleHeart, Repeat2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,9 @@ export function XiaoBaoSectionShell({
             </Button>
             <Button asChild variant={location.pathname === "/xiaobao/inbox" ? "secondary" : "ghost"} size="sm">
               <Link to="/xiaobao/inbox"><Inbox className="mr-2 h-4 w-4" />Inbox</Link>
+            </Button>
+            <Button asChild variant={location.pathname === "/xiaobao/notifications" ? "secondary" : "ghost"} size="sm">
+              <Link to="/xiaobao/notifications"><Bell className="mr-2 h-4 w-4" />Notifications</Link>
             </Button>
             <Button asChild variant="ghost" size="sm">
               <Link to="/xiaobao"><MessageCircleHeart className="mr-2 h-4 w-4" />Chat</Link>

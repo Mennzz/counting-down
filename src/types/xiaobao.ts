@@ -177,6 +177,35 @@ export interface XiaoBaoInbox {
   nextCursor: string | null;
 }
 
+export type XiaoBaoPushPermission = NotificationPermission | "UNSUPPORTED";
+export type XiaoBaoPushCapabilityStatus = "SUPPORTED" | "UNSUPPORTED" | "INSECURE_CONTEXT";
+
+/** Browser capability only; permission is requested exclusively from an explicit user action. */
+export interface XiaoBaoPushCapability {
+  status: XiaoBaoPushCapabilityStatus;
+  permission: XiaoBaoPushPermission;
+  needsIosHomeScreenInstall: boolean;
+}
+
+/** Safe server summary. Subscription endpoint and encryption keys never reach UI code. */
+export interface XiaoBaoPushDevice {
+  deviceId: string;
+  deviceName: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
+}
+
+export interface XiaoBaoPushConfig {
+  enabled: boolean;
+  vapidPublicKey: string | null;
+}
+
+export interface XiaoBaoPushSubscriptions {
+  devices: XiaoBaoPushDevice[];
+}
+
 export interface XiaoBaoProposalTarget {
   type: "MEDIATION_SESSION";
   id: string;

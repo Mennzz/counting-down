@@ -21,6 +21,7 @@ describe("Xiao Bao routine editor", () => {
     }} />);
 
     expect(screen.getByText(/cannot add, edit, complete, or delete list items/i)).toBeInTheDocument();
+    expect(screen.getByText(/messages always arrive in your private Xiao Bao inbox.*optionally enable private device alerts/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Routine name")).toHaveAttribute("maxLength", "100");
     expect(screen.getByRole("button", { name: "Review routine" })).toBeDisabled();
 

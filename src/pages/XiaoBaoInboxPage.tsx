@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Check, Inbox, Loader2, Repeat2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -12,26 +12,39 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   useMarkXiaoBaoInboxMessageRead,
   useXiaoBaoInbox,
+  useXiaoBaoInboxMessage,
   useXiaoBaoRoutines,
 } from "@/hooks/use-xiaobao-routines";
 
 export default function XiaoBaoInboxPage() {
   const [searchParams] = useSearchParams();
   const routineId = searchParams.get("routineId") || undefined;
+  const messageId = searchParams.get("messageId") || undefined;
   const inbox = useXiaoBaoInbox(routineId);
+  const requestedMessage = useXiaoBaoInboxMessage(messageId);
   const routines = useXiaoBaoRoutines();
   const markRead = useMarkXiaoBaoInboxMessageRead();
+  const requestedMessageRef = useRef<HTMLDivElement>(null);
   const pages = inbox.data?.pages;
   const messages = useMemo(() => {
     const byId = new Map((pages ?? []).flatMap((page) => page.messages).map((message) => [message.id, message]));
-    return [...byId.values()];
-  }, [pages]);
+    if (requestedMessage.data && (!routineId || requestedMessage.data.routineId === routineId)) {
+      byId.set(requestedMessage.data.id, requestedMessage.data);
+    }
+    return [...byId.values()].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }, [pages, requestedMessage.data, routineId]);
   const routineNames = useMemo(
     () => new Map((routines.data ?? []).map((routine) => [routine.id, routine.name])),
     [routines.data],
   );
   const selectedRoutineName = routineId ? routineNames.get(routineId) : undefined;
   const globalUnreadCount = pages?.[0]?.unreadCount ?? 0;
+
+  useEffect(() => {
+    if (messageId && requestedMessage.data) {
+      requestedMessageRef.current?.focus();
+    }
+  }, [messageId, requestedMessage.data]);
 
   return (
     <XiaoBaoSectionShell
@@ -52,6 +65,10 @@ export default function XiaoBaoInboxPage() {
         </div>
       </div>
 
+      {messageId && requestedMessage.isError && (
+        <Card className="mb-4 border-amber-200 bg-amber-50"><CardContent className="p-4 text-sm text-amber-950">That private inbox message is no longer available.</CardContent></Card>
+      )}
+
       {inbox.isLoading ? (
         <div className="space-y-4"><Skeleton className="h-40" /><Skeleton className="h-40" /></div>
       ) : inbox.isError ? (
@@ -62,7 +79,15 @@ export default function XiaoBaoInboxPage() {
             const isUnread = !message.readAt;
             const routineName = routineNames.get(message.routineId);
             return (
-              <Card key={message.id} className={isUnread ? "border-rose-200 bg-rose-50/60 shadow-sm" : "border-slate-100 bg-white/80"}>
+              <Card
+                key={message.id}
+                ref={message.id === messageId ? requestedMessageRef : undefined}
+                tabIndex={message.id === messageId ? -1 : undefined}
+                data-highlighted={message.id === messageId || undefined}
+                className={message.id === messageId
+                  ? "border-rose-400 bg-rose-50 shadow-md ring-2 ring-rose-200"
+                  : isUnread ? "border-rose-200 bg-rose-50/60 shadow-sm" : "border-slate-100 bg-white/80"}
+              >
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3">
                     <XiaoBaoMascot state={isUnread ? "hello" : "idle"} size={46} animated={false} />

@@ -72,7 +72,12 @@ export async function consumeSse(
       .map((line) => line.slice(5).trimStart())
       .join("\n");
     if (!eventName || !data) return;
-    const normalized = await processResponse<Record<string, unknown>>(JSON.parse(data));
+    // SSE uses the same API response shapes as ordinary reads. Keep a one-time reminder's
+    // calendar date as YYYY-MM-DD here too; otherwise the generic date normalizer turns it into
+    // an ISO instant and the newly streamed proposal card cannot format its schedule.
+    const normalized = preserveLocalScheduleDates(
+      await processResponse<Record<string, unknown>>(JSON.parse(data)),
+    );
     onEvent({ type: eventName, ...normalized } as XiaoBaoSseEvent);
   };
 
@@ -183,8 +188,10 @@ export const xiaoBaoApi = {
   },
   getInboxUnreadCount: () =>
     request<XiaoBaoInboxUnreadCount>("/inbox/unread-count", { headers: headers() }),
+  getInboxMessage: (messageId: string) =>
+    request<XiaoBaoInboxMessage>(`/inbox/${encodeURIComponent(messageId)}`, { headers: headers() }),
   markInboxMessageRead: (messageId: string) =>
-    request<XiaoBaoInboxMessage>(`/inbox/${messageId}/read`, {
+    request<XiaoBaoInboxMessage>(`/inbox/${encodeURIComponent(messageId)}/read`, {
       method: "POST",
       headers: headers(),
     }),

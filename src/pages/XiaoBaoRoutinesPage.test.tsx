@@ -82,7 +82,7 @@ describe("Xiao Bao routines page", () => {
     expect(screen.queryByRole("link", { name: "Read this routine’s inbox first" })).not.toBeInTheDocument();
   });
 
-  it("keeps a delivered reminder as private history without routine controls", () => {
+  it("hides a delivered one-time reminder while retaining the inbox as its history", () => {
     routinesState.data = [routine({
       kind: "REMINDER",
       name: "Cozy date",
@@ -102,13 +102,41 @@ describe("Xiao Bao routines page", () => {
     })];
     render(<MemoryRouter><XiaoBaoRoutinesPage /></MemoryRouter>);
 
-    expect(screen.getByText("Delivered")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Open inbox" })[1]).toHaveAttribute(
-      "href",
-      "/xiaobao/inbox?routineId=routine-1",
-    );
+    expect(screen.queryByText("Cozy date")).not.toBeInTheDocument();
+    expect(screen.queryByText("Delivered")).not.toBeInTheDocument();
+    expect(screen.getByText(/delivered reminders remain in your private inbox/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Pause" })).not.toBeInTheDocument();
+  });
+
+  it("keeps pending and failed reminders plus recurring routines visible", () => {
+    routinesState.data = [
+      routine({
+        id: "pending-reminder",
+        kind: "REMINDER",
+        name: "Upcoming plan",
+        instruction: null,
+        message: "Plan our cozy mini-date.",
+        schedule: { frequency: "ONCE", localDate: "2026-08-28", localTime: "12:00", timezone: "Europe/Amsterdam", weekdays: [] },
+        finishReason: null,
+      }),
+      routine({
+        id: "failed-reminder",
+        kind: "REMINDER",
+        name: "Retry this plan",
+        instruction: null,
+        message: "Try another time.",
+        schedule: { frequency: "ONCE", localDate: "2026-08-29", localTime: "12:00", timezone: "Europe/Amsterdam", weekdays: [] },
+        finishReason: "FAILED",
+        finishedAt: "2026-08-29T10:00:00.000Z",
+      }),
+      routine({ id: "recurring-routine", enabled: true, name: "Morning idea", finishReason: null }),
+    ];
+    render(<MemoryRouter><XiaoBaoRoutinesPage /></MemoryRouter>);
+
+    expect(screen.getByText("Upcoming plan")).toBeInTheDocument();
+    expect(screen.getByText("Retry this plan")).toBeInTheDocument();
+    expect(screen.getByText("Morning idea")).toBeInTheDocument();
   });
 
   it("guides a paused, expired reminder to a future edit instead of offering resume", () => {

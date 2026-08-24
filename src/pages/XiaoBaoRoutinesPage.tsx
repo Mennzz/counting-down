@@ -57,6 +57,10 @@ const runStatusLabel: Record<XiaoBaoRoutineRunStatus, string> = {
 const isOneTimeReminder = (routine: XiaoBaoRoutine) =>
   routine.kind === "REMINDER" || routine.schedule.frequency === "ONCE";
 
+// A delivered one-time reminder remains durable inbox history, but no longer needs a schedule card.
+const isDeliveredOneTimeReminder = (routine: XiaoBaoRoutine) =>
+  routine.kind === "REMINDER" && routine.finishReason === "DELIVERED";
+
 const oneTimeStatus = (routine: XiaoBaoRoutine, latestRun?: XiaoBaoRoutineRun) => {
   if (routine.finishReason === "DELIVERED") return "Delivered";
   if (routine.finishReason === "FAILED") return "Couldn’t prepare";
@@ -68,6 +72,7 @@ const oneTimeStatus = (routine: XiaoBaoRoutine, latestRun?: XiaoBaoRoutineRun) =
 export default function XiaoBaoRoutinesPage() {
   const routines = useXiaoBaoRoutines();
   const createRoutine = useCreateXiaoBaoRoutine();
+  const visibleRoutines = (routines.data ?? []).filter((routine) => !isDeliveredOneTimeReminder(routine));
   const [createOpen, setCreateOpen] = useState(false);
   const [createReview, setCreateReview] = useState<XiaoBaoRoutineInput>();
 
@@ -98,16 +103,16 @@ export default function XiaoBaoRoutinesPage() {
         <div className="grid gap-4 md:grid-cols-2"><Skeleton className="h-64" /><Skeleton className="h-64" /></div>
       ) : routines.isError ? (
         <Card className="border-red-200 bg-red-50"><CardContent className="p-6 text-sm text-red-800">{routines.error.message || "Your routines and reminders could not load."}</CardContent></Card>
-      ) : routines.data?.length ? (
+      ) : visibleRoutines.length ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {routines.data.map((routine) => <RoutineCard key={routine.id} routine={routine} />)}
+          {visibleRoutines.map((routine) => <RoutineCard key={routine.id} routine={routine} />)}
         </div>
       ) : (
         <Card className="border-dashed border-rose-200 bg-white/70">
           <CardContent className="flex flex-col items-center p-10 text-center">
             <CalendarClock className="h-10 w-10 text-rose-400" />
             <h2 className="mt-3 text-lg font-semibold text-rose-950">No routines or reminders yet</h2>
-            <p className="mt-1 max-w-md text-sm text-muted-foreground">Set a one-time reminder here, or ask Xiao Bao in chat and review the card before accepting it.</p>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">Set a one-time reminder here, or ask Xiao Bao in chat and review the card before accepting it. Delivered reminders remain in your private inbox.</p>
             <Button className="mt-5" onClick={() => setCreateOpen(true)}>Set your first reminder</Button>
           </CardContent>
         </Card>

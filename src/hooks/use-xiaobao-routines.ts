@@ -19,6 +19,7 @@ import type {
 export const XIAOBAO_ROUTINES_QUERY_KEY = ["xiaobao", "routines"] as const;
 export const XIAOBAO_INBOX_QUERY_KEY = ["xiaobao", "inbox", "pages"] as const;
 export const XIAOBAO_INBOX_UNREAD_QUERY_KEY = ["xiaobao", "inbox", "unread-count"] as const;
+export const xiaoBaoInboxMessageKey = (messageId: string) => ["xiaobao", "inbox", "message", messageId] as const;
 export const xiaoBaoRoutineRunsKey = (routineId: string) => [
   ...XIAOBAO_ROUTINES_QUERY_KEY,
   routineId,
@@ -54,6 +55,12 @@ export const useXiaoBaoInboxUnreadCount = () => useQuery({
   queryFn: xiaoBaoApi.getInboxUnreadCount,
   staleTime: 20_000,
   refetchInterval: 60_000,
+});
+
+export const useXiaoBaoInboxMessage = (messageId?: string) => useQuery({
+  queryKey: xiaoBaoInboxMessageKey(messageId ?? ""),
+  queryFn: () => xiaoBaoApi.getInboxMessage(messageId!),
+  enabled: Boolean(messageId),
 });
 
 const useRoutineMutation = <TVariables,>(

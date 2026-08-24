@@ -8,7 +8,9 @@ import XiaoBaoInboxPage from "./XiaoBaoInboxPage";
 const markRead = vi.fn();
 const fetchNextPage = vi.fn();
 const useInbox = vi.fn();
+const useInboxMessage = vi.fn();
 const inboxState: { result: ReturnType<typeof inboxResult> } = { result: undefined as never };
+const inboxMessageState: { result: ReturnType<typeof inboxMessageResult> } = { result: undefined as never };
 
 vi.mock("@/hooks/use-xiaobao-routines", () => ({
   useXiaoBaoInbox: (routineId?: string) => {
@@ -18,6 +20,10 @@ vi.mock("@/hooks/use-xiaobao-routines", () => ({
   useXiaoBaoRoutines: () => ({
     data: [{ id: "routine-1", name: "Morning kindness" }],
   }),
+  useXiaoBaoInboxMessage: (messageId?: string) => {
+    useInboxMessage(messageId);
+    return inboxMessageState.result;
+  },
   useMarkXiaoBaoInboxMessageRead: () => ({ mutate: markRead, isPending: false }),
 }));
 
@@ -26,7 +32,9 @@ describe("Xiao Bao inbox page", () => {
     markRead.mockReset();
     fetchNextPage.mockReset();
     useInbox.mockReset();
+    useInboxMessage.mockReset();
     inboxState.result = inboxResult([[message("message-1", "Leave a tiny note somewhere surprising.")]]);
+    inboxMessageState.result = inboxMessageResult();
   });
 
   it("shows unread routine messages, identifies their routine, and marks them as read", () => {
@@ -52,6 +60,22 @@ describe("Xiao Bao inbox page", () => {
     expect(useInbox).toHaveBeenCalledWith("routine-1");
     expect(screen.getByText(/private messages from “Morning kindness”/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Show all messages" })).toHaveAttribute("href", "/xiaobao/inbox");
+  });
+
+  it("loads and highlights the exact private message from a notification deep link without marking it read", () => {
+    const linkedMessage = message("message-99", "A message from the notification", "2026-08-25T08:00:00.000Z");
+    inboxState.result = inboxResult([]);
+    inboxMessageState.result = inboxMessageResult(linkedMessage);
+
+    render(
+      <MemoryRouter initialEntries={["/xiaobao/inbox?messageId=message-99"]}>
+        <XiaoBaoInboxPage />
+      </MemoryRouter>,
+    );
+
+    expect(useInboxMessage).toHaveBeenCalledWith("message-99");
+    expect(screen.getByText("A message from the notification").closest("[data-highlighted='true']")).toBeInTheDocument();
+    expect(markRead).not.toHaveBeenCalled();
   });
 
   it("loads older pages, deduplicates stable page boundaries, and exposes an old blocker", () => {
@@ -111,5 +135,12 @@ function inboxResult(pageMessages: XiaoBaoInboxMessage[][], hasNextPage = false)
     hasNextPage,
     isFetchingNextPage: false,
     fetchNextPage,
+  };
+}
+
+function inboxMessageResult(data?: XiaoBaoInboxMessage) {
+  return {
+    data,
+    isError: false,
   };
 }
