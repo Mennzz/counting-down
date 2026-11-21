@@ -85,7 +85,7 @@ export const AdventCalendarNew = () => {
     <div className="container mx-auto p-6">
       <div className="mb-8 text-center">
         <h1 className="mb-2 text-5xl font-bold text-red-600">🎄 Advent Calendar 🎄</h1>
-        <p className="text-muted-foreground">25 days of surprises leading to Christmas!</p>
+        <p className="text-muted-foreground">{new Date().getUTCFullYear()} · 25 days of surprises leading to Christmas!</p>
 
         <div className="mt-4 flex items-center justify-center gap-4">
           <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">

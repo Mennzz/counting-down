@@ -169,7 +169,7 @@ export const getAdventCountByMe = async (): Promise<number> => {
   }
 
   const data = await response.json();
-  return (data as { count: number }).count;
+  return typeof data === "number" ? data : (data as { count: number }).count;
 };
 
 export const deleteAdvent = async (id: string): Promise<void> => {

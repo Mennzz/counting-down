@@ -117,7 +117,9 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
         return;
       }
 
-      const sortedAdvents = [...data].sort((a, b) => {
+      const year = new Date().getUTCFullYear();
+      const currentYearAdvents = data.filter((entry) => new Date(entry.uploadedAt).getUTCFullYear() === year);
+      const sortedAdvents = [...currentYearAdvents].sort((a, b) => {
         const aTime = new Date(a.uploadedAt).getTime();
         const bTime = new Date(b.uploadedAt).getTime();
         return aTime - bTime;
@@ -127,7 +129,7 @@ export const useAdventEntries = (viewMode: AdventViewMode) => {
       setLoadError(null);
       setIsLoading(false);
 
-      const entriesToLoad = data.filter((advent) => {
+      const entriesToLoad = currentYearAdvents.filter((advent) => {
         const key = advent.imageKey;
         if (!key) {
           return false;

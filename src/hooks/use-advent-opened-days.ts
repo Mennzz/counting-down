@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { getUserType } from "@/utils/cookies";
 
-const STORAGE_KEY = "advent-opened-days";
+const getStorageKey = () => `advent-opened-days-${new Date().getUTCFullYear()}-${getUserType() ?? "unknown"}`;
 
 const parseStoredDays = (rawValue: string | null): Set<number> => {
   if (!rawValue) {
@@ -21,23 +22,18 @@ const parseStoredDays = (rawValue: string | null): Set<number> => {
 };
 
 export const useAdventOpenedDays = () => {
-  const [openedDays, setOpenedDays] = useState<Set<number>>(new Set());
+  const storageKey = getStorageKey();
+  const [openedDays, setOpenedDays] = useState<Set<number>>(() =>
+    typeof window === "undefined" ? new Set() : parseStoredDays(localStorage.getItem(storageKey))
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    setOpenedDays(parseStoredDays(localStorage.getItem(STORAGE_KEY)));
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(openedDays)));
-  }, [openedDays]);
+    localStorage.setItem(storageKey, JSON.stringify(Array.from(openedDays)));
+  }, [openedDays, storageKey]);
 
   const markDayOpened = useCallback((day: number) => {
     setOpenedDays((prev) => {

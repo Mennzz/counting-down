@@ -35,6 +35,7 @@ interface RelationshipStatsState {
 
 const MET_DATE = new Date("2024-12-05");
 const DATING_DATE = new Date("2025-07-10");
+const ENGAGEMENT_DATE = new Date(2026, 5, 27);
 
 export const useRelationshipStats = (): RelationshipStatsState => {
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
@@ -60,6 +61,7 @@ export const useRelationshipStats = (): RelationshipStatsState => {
 
   const daysSinceMet = differenceInDays(new Date(), MET_DATE);
   const daysSinceDating = differenceInDays(new Date(), DATING_DATE);
+  const daysSinceEngagement = differenceInDays(new Date(), ENGAGEMENT_DATE);
 
   const completedTodos = useMemo(
     () => todos.filter((todo) => todo.completed).length,
@@ -142,6 +144,13 @@ export const useRelationshipStats = (): RelationshipStatsState => {
       value: daysSinceDating >= 0 ? daysSinceDating.toString() : "0",
       subtitle: `Official since ${format(DATING_DATE, "PPP")}`,
       color: "text-purple-500"
+    },
+    {
+      icon: Heart,
+      label: "Days Engaged",
+      value: Math.max(0, daysSinceEngagement).toString(),
+      subtitle: `Engaged since ${format(ENGAGEMENT_DATE, "PPP")}`,
+      color: "text-rose-500"
     },
     {
       icon: Plane,
