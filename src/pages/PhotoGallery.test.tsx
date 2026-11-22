@@ -24,6 +24,8 @@ const makePhotos = (count: number, prefix = "all", start = 0): images.ImageMetad
     };
   });
 const photos = makePhotos(12);
+const sensitivePhotos = (count: number, prefix = "fun", start = 0) => makePhotos(count, prefix, start).map((photo, index) =>
+  ({ ...photo, imageTags: [[" Sensitive ", "spicy", "NUDE"][index % 3]] }));
 const observers: { callback: IntersectionObserverCallback; targets: Element[] }[] = [];
 
 beforeEach(() => {
@@ -77,6 +79,83 @@ const swipe = async (direction: "left" | "right", vertical = false) => {
 };
 
 describe("gallery viewer with the real carousel", () => {
+  it.each([["All", "listImages"], ["By Me", "listImagesByMe"], ["From Danfeng", "listImagesForMe"]] as const)(
+    "opens Fun mode with sensitive photos for %s and preserves the normal gallery", async (label, method) => {
+      const list = vi.mocked(images[method]);
+      const normal = method === "listImages" ? photos : makePhotos(4, method === "listImagesByMe" ? "mine" : "partner");
+      list.mockImplementation(async (params) => ({ items: params?.sensitiveOnly ? sensitivePhotos(3) : normal }));
+      render(<PhotoGallery />);
+      await screen.findByRole("button", { name: label });
+      await userEvent.click(screen.getByRole("button", { name: label }));
+      await screen.findByRole("button", { name: new RegExp(`${normal[0].title} `) });
+      const trigger = screen.getByRole("button", { name: "Fun mode" });
+      await userEvent.click(trigger);
+      expect(await screen.findByRole("heading", { name: "fun photo 0" })).toBeInTheDocument();
+      expect(list).toHaveBeenLastCalledWith({ limit: 12, cursor: null, sensitiveOnly: true });
+      await userEvent.keyboard("{ArrowRight}");
+      expect(heading("fun photo 1")).toBeInTheDocument();
+      expect(originalSources().every((url) => url.includes("fun"))).toBe(true);
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(trigger).toHaveFocus();
+      expect(screen.getByRole("button", { name: new RegExp(`${normal[0].title} `) })).toBeInTheDocument();
+      await userEvent.click(trigger);
+      expect(await screen.findByRole("heading", { name: "fun photo 0" })).toBeInTheDocument();
+    });
+
+  it("paginates only sensitive results, preserves selection, and preloads only neighbours", async () => {
+    vi.mocked(images.listImages).mockResolvedValueOnce({ items: photos })
+      .mockResolvedValueOnce({ items: sensitivePhotos(12), nextCursor: "fun-next" })
+      .mockResolvedValueOnce({ items: sensitivePhotos(2, "fun", 12) });
+    render(<PhotoGallery />);
+    await userEvent.click(await screen.findByRole("button", { name: "Fun mode" }));
+    await screen.findByRole("heading", { name: "fun photo 0" });
+    expect(originalSources()).toHaveLength(2);
+    for (let index = 0; index < 9; index++) await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(screen.getByText("10 / 14")).toBeInTheDocument());
+    expect(heading("fun photo 9")).toBeInTheDocument();
+    expect(images.listImages).toHaveBeenLastCalledWith({ limit: 12, cursor: "fun-next", sensitiveOnly: true });
+    expect(originalSources()).toHaveLength(3);
+    for (let index = 0; index < 4; index++) await userEvent.keyboard("{ArrowRight}");
+    expect(heading("fun photo 13")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next photo" })).toBeDisabled();
+  });
+
+  it("offers retry after an initial failure and shows an empty state without opening normal photos", async () => {
+    vi.mocked(images.listImages).mockResolvedValueOnce({ items: photos })
+      .mockRejectedValueOnce(new Error("Unavailable"))
+      .mockResolvedValueOnce({ items: [] });
+    render(<PhotoGallery />);
+    await userEvent.click(await screen.findByRole("button", { name: "Fun mode" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Retry loading photos" }));
+    expect(await screen.findByText("No sensitive photos for this filter.")).toBeInTheDocument();
+    expect(originalSources()).toEqual([]);
+    await userEvent.click(screen.getByRole("button", { name: "Back to gallery" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("removes untagged and deleted photos from Fun mode and updates the underlying gallery", async () => {
+    const fun = sensitivePhotos(2);
+    vi.mocked(images.listImages).mockResolvedValueOnce({ items: fun }).mockResolvedValueOnce({ items: fun });
+    vi.mocked(images.updateImageMetadata).mockResolvedValue({ ...fun[0], imageTags: [] });
+    render(<PhotoGallery />);
+    await userEvent.click(await screen.findByRole("button", { name: "Fun mode" }));
+    await screen.findByRole("heading", { name: "fun photo 0" });
+    await userEvent.click(screen.getByRole("button", { name: "Edit photo" }));
+    expect(screen.getByRole("button", { name: "Next photo" })).toBeDisabled();
+    await userEvent.click(screen.getByLabelText("Sensitive content (will be blurred in gallery)"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("heading", { name: "fun photo 1" })).toBeInTheDocument();
+    expect(images.updateImageMetadata).toHaveBeenCalledWith("fun-0", expect.objectContaining({ imageTags: [] }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete photo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(await screen.findByText("No sensitive photos for this filter.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Back to gallery" }));
+    expect(screen.queryByRole("button", { name: /fun photo 1 / })).not.toBeInTheDocument();
+    const card = screen.getByRole("button", { name: /fun photo 0 / });
+    expect(card.querySelector("img")).not.toHaveClass("blur-xl");
+  });
+
   it.each([1, 2])("stops swipes at both ends of a %i-photo gallery", async (count) => {
     vi.mocked(images.listImages).mockResolvedValue({ items: photos.slice(0, count) });
     render(<PhotoGallery />);

@@ -24,6 +24,7 @@ export type ImagePageResponse = {
 type ImageListParams = {
   limit?: number;
   cursor?: string | null;
+  sensitiveOnly?: boolean;
 };
 
 type CreateImagePayload = {
@@ -60,6 +61,7 @@ const buildListUrl = (path: string, params?: ImageListParams) => {
   if (params?.cursor) {
     search.set("cursor", params.cursor);
   }
+  if (params?.sensitiveOnly) search.set("sensitive_only", "true");
   const query = search.toString();
   return `${API_BASE_URL}${path}${query ? `?${query}` : ""}`;
 };

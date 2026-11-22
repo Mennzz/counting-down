@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Image, Upload } from "lucide-react";
+import { Heart, Image, Sparkles, Upload } from "lucide-react";
 
 import {
   createImageMetadata,
@@ -11,6 +11,8 @@ import {
   type ImagePageResponse
 } from "@/services/image";
 import { PhotoViewer } from "@/components/photos/PhotoViewer";
+import { FunPhotoViewer } from "@/components/photos/FunPhotoViewer";
+import { isSensitivePhoto } from "@/utils/photos";
 import { PhotoGallerySkeleton } from "@/components/loading/PageSkeletons";
 import { getUserType } from "@/utils/cookies";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,6 +36,7 @@ const PhotoGallery = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+  const [isFunModeOpen, setIsFunModeOpen] = useState(false);
   const galleryPositionRef = useRef({ x: 0, y: 0, trigger: null as HTMLButtonElement | null });
   const inFlightRef = useRef<number | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -201,6 +204,20 @@ const PhotoGallery = () => {
     });
   }, []);
 
+  const deletePhotoFromCache = (deleted: ImageMetadata) => {
+    const keep = (photo: ImageMetadata) => (deleted.id ? photo.id !== deleted.id : photo.imageKey !== deleted.imageKey);
+    (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
+      cacheRef.current[target].items = cacheRef.current[target].items.filter(keep);
+    });
+    setPhotos((previous) => previous.filter(keep));
+  };
+
+  const restoreGalleryFocus = () => {
+    const { x, y, trigger } = galleryPositionRef.current;
+    if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+    if (window.scrollX !== x || window.scrollY !== y) window.scrollTo(x, y);
+  };
+
   const scheduleThumbnailRefresh = useCallback(
     (photo: ImageMetadata, attempt: number) => {
       const key = photo.imageKey;
@@ -237,7 +254,7 @@ const PhotoGallery = () => {
 
   useEffect(() => {
     const target = loadMoreRef.current;
-    if (!target || !hasMore || selectedPhotoId !== null || loadError) {
+    if (!target || !hasMore || selectedPhotoId !== null || isFunModeOpen || loadError) {
       return;
     }
 
@@ -252,7 +269,7 @@ const PhotoGallery = () => {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [handleLoadMore, hasMore, selectedPhotoId, loadError]);
+  }, [handleLoadMore, hasMore, selectedPhotoId, isFunModeOpen, loadError]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -372,6 +389,10 @@ const PhotoGallery = () => {
               By Me
             </button>
           </div>
+          <Button type="button" variant="outline" className="gap-2" onClick={(event) => {
+            galleryPositionRef.current = { x: window.scrollX, y: window.scrollY, trigger: event.currentTarget };
+            setIsFunModeOpen(true);
+          }}><Sparkles className="h-4 w-4" />Fun mode</Button>
           <Dialog open={isUploadOpen} onOpenChange={(open) => {
             setIsUploadOpen(open);
             if (!open) resetUploadForm();
@@ -506,10 +527,7 @@ const PhotoGallery = () => {
             ? new Date(photo.uploadedAt).toLocaleDateString()
             : "";
           const imageUrl = photo.thumbnailXlUrl || photo.thumbnailUrl;
-          const hasSensitiveTag = (photo.imageTags ?? []).some((tag) => {
-            const normalized = tag.trim().toLowerCase();
-            return normalized === "sensitive" || normalized === "spicy" || normalized === "nude";
-          });
+          const hasSensitiveTag = isSensitivePhoto(photo);
 
           return (
             <button
@@ -562,20 +580,13 @@ const PhotoGallery = () => {
         photos={photos} selectedId={selectedPhotoId} existingTags={existingTags}
         hasMore={hasMore} isLoadingMore={isLoadingMore} loadError={loadError}
         onSelect={setSelectedPhotoId} onLoadMore={handleLoadMore} onUpdated={updatePhotoInCache}
-        onDeleted={(deleted) => {
-          const keep = (photo: ImageMetadata) => (deleted.id ? photo.id !== deleted.id : photo.imageKey !== deleted.imageKey);
-          (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
-            cacheRef.current[target].items = cacheRef.current[target].items.filter(keep);
-          });
-          setPhotos((previous) => previous.filter(keep));
-        }}
+        onDeleted={deletePhotoFromCache}
         onClose={() => setSelectedPhotoId(null)}
-        onRestoreFocus={() => {
-          const { x, y, trigger } = galleryPositionRef.current;
-          if (trigger?.isConnected) trigger.focus({ preventScroll: true });
-          if (window.scrollX !== x || window.scrollY !== y) window.scrollTo(x, y);
-        }}
+        onRestoreFocus={restoreGalleryFocus}
       /> : null}
+      {isFunModeOpen ? <FunPhotoViewer filter={filter} filterLabel={filterLabel}
+        onUpdated={updatePhotoInCache} onDeleted={deletePhotoFromCache}
+        onClose={() => setIsFunModeOpen(false)} onRestoreFocus={restoreGalleryFocus} /> : null}
     </div>
   );
 };

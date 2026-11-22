@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhotoViewerImage } from "@/components/photos/PhotoViewerImage";
+import { isSensitivePhoto, isSensitiveTag, photoId } from "@/utils/photos";
 
 interface PhotoViewerProps {
   photos: ImageMetadata[];
@@ -23,13 +24,13 @@ interface PhotoViewerProps {
   onDeleted: (photo: ImageMetadata) => void;
   onClose: () => void;
   onRestoreFocus: () => void;
+  modeLabel?: string;
+  closeOnDelete?: boolean;
 }
 
-// Legacy records without a database ID still have a stable image key.
-const photoId = (photo: ImageMetadata) => photo.id ?? photo.imageKey;
-
 export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadingMore, loadError,
-  onSelect, onLoadMore, onUpdated, onDeleted, onClose, onRestoreFocus }: PhotoViewerProps) {
+  onSelect, onLoadMore, onUpdated, onDeleted, onClose, onRestoreFocus,
+  modeLabel, closeOnDelete = true }: PhotoViewerProps) {
   const selectedIndex = photos.findIndex((photo) => photoId(photo) === selectedId);
   const selectedPhoto = photos[selectedIndex];
   const [isEditing, setIsEditing] = useState(false);
@@ -127,10 +128,10 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
     </div>
   );
   const enterEditMode = (photo: ImageMetadata) => {
-    const isSensitive = (photo.imageTags ?? []).some((t) => t.trim().toLowerCase() === "sensitive");
+    const isSensitive = isSensitivePhoto(photo);
     setEditTitle(photo.title?.trim() ?? "");
     setEditDescription(photo.description?.trim() ?? "");
-    setEditTags((photo.imageTags ?? []).filter((t) => t.trim().toLowerCase() !== "sensitive").join(", "));
+    setEditTags((photo.imageTags ?? []).filter((t) => !isSensitiveTag(t)).join(", "));
     setEditSensitive(isSensitive);
     setEditError(null);
     setIsEditing(true);
@@ -163,8 +164,9 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
     setEditError(null);
     try {
       await deleteImage(selectedPhoto.id);
+      setIsConfirmDeleteOpen(false);
       onDeleted(selectedPhoto);
-      onClose();
+      if (closeOnDelete) onClose();
     } catch (error) {
       setEditError(error instanceof Error ? error.message : "Failed to delete photo");
       setIsConfirmDeleteOpen(false);
@@ -176,6 +178,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
         <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto"
           onCloseAutoFocus={(event) => { event.preventDefault(); onRestoreFocus(); }} onKeyDown={handleKeyDown}>
           <DialogHeader>
+            {modeLabel ? <p className="text-sm font-medium text-rose-600">{modeLabel}</p> : null}
             <DialogTitle className="flex items-center gap-2 pr-6 text-2xl font-playfair text-rose-600">
               {isEditing ? "Edit Photo" : (selectedPhoto?.title?.trim() || "Photo Details")}
               {!isEditing && selectedPhoto ? (
@@ -239,7 +242,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
                       const currentTagSet = new Set(
                         editTags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
                       );
-                      const suggestions = existingTags.filter((t) => t !== "sensitive" && !currentTagSet.has(t));
+                      const suggestions = existingTags.filter((t) => !isSensitiveTag(t) && !currentTagSet.has(t));
                       if (!suggestions.length) return null;
                       return (
                         <div className="flex flex-wrap gap-1.5">
