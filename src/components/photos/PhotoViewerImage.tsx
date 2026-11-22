@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 interface PhotoViewerImageProps {
   photo: ImageMetadata;
   active: boolean;
+  fullScreen?: boolean;
   onRetry: (photo: ImageMetadata) => Promise<void>;
 }
 
@@ -13,7 +14,7 @@ export function PhotoViewerImage(props: PhotoViewerImageProps) {
   return <ImageAttempt key={props.photo.url} {...props} />;
 }
 
-function ImageAttempt({ photo, active, onRetry }: PhotoViewerImageProps) {
+function ImageAttempt({ photo, active, onRetry, fullScreen }: PhotoViewerImageProps) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
   const [attempt, setAttempt] = useState(0);
   const [retrying, setRetrying] = useState(false);
@@ -34,7 +35,7 @@ function ImageAttempt({ photo, active, onRetry }: PhotoViewerImageProps) {
   };
 
   return (
-    <div className="relative flex h-[45dvh] items-center justify-center bg-black/5 sm:h-[55dvh]" aria-busy={status === "loading"}>
+    <div className={`relative flex items-center justify-center ${fullScreen ? "h-[calc(100dvh-8rem)] bg-black" : "h-[45dvh] bg-black/5 sm:h-[55dvh]"}`} aria-busy={status === "loading"}>
       {preview && !previewFailed && status !== "loaded" ? (
         <img src={preview} alt="" draggable={false} onError={() => setPreviewFailed(true)} className="absolute inset-0 h-full w-full object-contain" />
       ) : null}

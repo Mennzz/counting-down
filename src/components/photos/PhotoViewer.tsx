@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight, Pencil, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Pencil, Trash2, X } from "lucide-react";
 import { deleteImage, getImageMetadataById, updateImageMetadata, type ImageMetadata } from "@/services/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
   const selectedIndex = photos.findIndex((photo) => photoId(photo) === selectedId);
   const selectedPhoto = photos[selectedIndex];
   const [isEditing, setIsEditing] = useState(false);
+  const [fullScreen, setFullScreen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editTags, setEditTags] = useState("");
@@ -72,7 +73,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
     carousel.on("reInit", restoreSelection);
     carousel.on("select", select);
     return () => { carousel.off("reInit", restoreSelection); carousel.off("select", select); };
-  }, [carousel, slideIds, locked]);
+  }, [carousel, slideIds, locked, fullScreen]);
 
   useEffect(() => {
     if (selectedIndex >= 0 && photos.length - selectedIndex <= 3 && hasMore && !isLoadingMore && !loadError) {
@@ -112,16 +113,16 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
           {photos.map((photo, index) => (
             <div key={photoId(photo)} className="min-w-0 flex-[0_0_100%]" role="group" aria-roledescription="slide" aria-label={`${index + 1} of ${photos.length}`} aria-hidden={index !== selectedIndex}>
               {Math.abs(index - selectedIndex) <= 1 ? (
-                <PhotoViewerImage photo={photo} active={index === selectedIndex} onRetry={retryImage} />
-              ) : <div className="h-[45dvh] sm:h-[55dvh]" />}
+                <PhotoViewerImage photo={photo} active={index === selectedIndex} onRetry={retryImage} fullScreen={fullScreen} />
+              ) : <div className={fullScreen ? "h-[calc(100dvh-8rem)]" : "h-[45dvh] sm:h-[55dvh]"} />}
             </div>
           ))}
         </div>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <Button variant="outline" size="icon" aria-label="Previous photo" disabled={locked || selectedIndex <= 0} onClick={() => navigate(-1)}><ChevronLeft /></Button>
-        <p className="text-sm text-gray-500" aria-live="polite">{selectedIndex + 1} / {photos.length}{hasMore ? "+" : ""}</p>
-        <Button variant="outline" size="icon" aria-label="Next photo" disabled={locked || selectedIndex >= photos.length - 1} onClick={() => navigate(1)}><ChevronRight /></Button>
+        <Button variant="outline" size="icon" className="text-gray-900" aria-label="Previous photo" disabled={locked || selectedIndex <= 0} onClick={() => navigate(-1)}><ChevronLeft /></Button>
+        <p className={`text-sm ${fullScreen ? "text-white" : "text-gray-500"}`} aria-live="polite">{selectedIndex + 1} / {photos.length}{hasMore ? "+" : ""}</p>
+        <Button variant="outline" size="icon" className="text-gray-900" aria-label="Next photo" disabled={locked || selectedIndex >= photos.length - 1} onClick={() => navigate(1)}><ChevronRight /></Button>
       </div>
       {isLoadingMore ? <p role="status" className="text-sm text-gray-500">Loading more photos...</p> : null}
       {loadError ? <div role="alert" className="text-sm text-rose-600">{loadError} <Button variant="outline" onClick={onLoadMore}>Retry loading photos</Button></div> : null}
@@ -175,13 +176,14 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
   return (
     <>
       <Dialog open onOpenChange={(open) => { if (!open && !isSaving && !isDeleting && !isConfirmDeleteOpen) onClose(); }}>
-        <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto"
+        <DialogContent className={fullScreen ? "h-[100dvh] max-h-none w-screen max-w-none grid-rows-[auto_1fr] gap-2 overflow-hidden rounded-none border-0 bg-black p-4 text-white sm:rounded-none [&>button:last-child]:text-white" : "max-w-3xl max-h-[90dvh] overflow-y-auto"}
+          onEscapeKeyDown={(event) => { if (fullScreen) { event.preventDefault(); setFullScreen(false); } }}
           onCloseAutoFocus={(event) => { event.preventDefault(); onRestoreFocus(); }} onKeyDown={handleKeyDown}>
-          <DialogHeader>
+          <DialogHeader className={fullScreen ? "sr-only" : undefined}>
             {modeLabel ? <p className="text-sm font-medium text-rose-600">{modeLabel}</p> : null}
             <DialogTitle className="flex items-center gap-2 pr-6 text-2xl font-playfair text-rose-600">
               {isEditing ? "Edit Photo" : (selectedPhoto?.title?.trim() || "Photo Details")}
-              {!isEditing && selectedPhoto ? (
+              {!isEditing && !fullScreen && selectedPhoto ? (
                 <>
                   <button
                     type="button"
@@ -208,9 +210,15 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
             </DialogDescription>
           </DialogHeader>
           {selectedPhoto ? (
-            <div className="space-y-4">
+            <div className={fullScreen ? "min-h-0" : "space-y-4"}>
+              <div className={fullScreen ? "absolute left-4 top-4 z-10" : "flex justify-end"}>
+                <Button type="button" variant="outline" size="sm" className="text-gray-900" disabled={locked} onClick={() => setFullScreen(!fullScreen)} aria-label={fullScreen ? "Exit full screen" : "View full screen"}>
+                  {fullScreen ? <Minimize2 className="mr-2 h-4 w-4" /> : <Maximize2 className="mr-2 h-4 w-4" />}
+                  {fullScreen ? "Exit full screen" : "Full screen"}
+                </Button>
+              </div>
               {imageCarousel}
-              {isEditing ? (
+              {!fullScreen && (isEditing ? (
                 <div className="space-y-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit-photo-title">Title</Label>
@@ -308,7 +316,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
                     </div>
                   ) : null}
                 </>
-              )}
+              ))}
             </div>
           ) : null}
         </DialogContent>
@@ -345,3 +353,4 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
     </>
   );
 }
+

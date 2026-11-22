@@ -207,6 +207,23 @@ describe("gallery viewer with the real carousel", () => {
     expect(viewport()).toHaveStyle({ touchAction: "pan-y pinch-zoom" });
   });
 
+  it("keeps navigation and selection when entering and leaving full screen", async () => {
+    render(<PhotoGallery />);
+    await open(4);
+    await userEvent.click(screen.getByRole("button", { name: "View full screen" }));
+    expect(screen.getByRole("button", { name: "Exit full screen" })).toBeInTheDocument();
+    await swipe("left");
+    await waitFor(() => expect(heading("all photo 5")).toBeInTheDocument());
+    await userEvent.keyboard("{ArrowRight}");
+    expect(heading("all photo 6")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "View full screen" })).toBeInTheDocument();
+    expect(heading("all photo 6")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "View full screen" }));
+    await userEvent.click(screen.getByRole("button", { name: "Exit full screen" }));
+    expect(heading("all photo 6")).toBeInTheDocument();
+  });
+
   it("mounts only the selected original and its neighbours, with a preview until load", async () => {
     render(<PhotoGallery />);
     await screen.findByRole("button", { name: /all photo 0 / });
