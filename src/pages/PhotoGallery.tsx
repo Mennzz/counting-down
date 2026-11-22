@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Image, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Heart, Image, Upload } from "lucide-react";
 
 import {
   createImageMetadata,
-  deleteImage,
   getImageMetadataById,
   listImages,
   listImagesByMe,
   listImagesForMe,
-  updateImageMetadata,
   type ImageMetadata,
   type ImagePageResponse
 } from "@/services/image";
+import { PhotoViewer } from "@/components/photos/PhotoViewer";
 import { PhotoGallerySkeleton } from "@/components/loading/PageSkeletons";
 import { getUserType } from "@/utils/cookies";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,7 +33,9 @@ const PhotoGallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<ImageMetadata | null>(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+  const galleryPositionRef = useRef({ x: 0, y: 0, trigger: null as HTMLButtonElement | null });
+  const inFlightRef = useRef<number | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
@@ -43,15 +44,6 @@ const PhotoGallery = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editTags, setEditTags] = useState("");
-  const [editSensitive, setEditSensitive] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const isMountedRef = useRef(true);
   const thumbnailRetryTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const thumbnailRetryCountsRef = useRef<Record<string, number>>({});
@@ -82,9 +74,11 @@ const PhotoGallery = () => {
   const loadPhotos = useCallback(
     async (target: PhotoFilter, cursor?: string | null, append?: boolean) => {
       const requestId = ++requestRef.current;
+      inFlightRef.current = requestId;
       const cached = cacheRef.current[target];
 
       if (!append && cached.loaded) {
+        inFlightRef.current = null;
         setPhotos(cached.items);
         setNextCursor(cached.nextCursor);
         setHasMore(cached.hasMore);
@@ -108,7 +102,7 @@ const PhotoGallery = () => {
         }
 
         const combined = append ? [...cached.items, ...(page.items ?? [])] : (page.items ?? []);
-        const sorted = [...combined].sort((a, b) => {
+        const sorted = Array.from(new Map(combined.map((photo) => [photo.id ?? photo.imageKey, photo])).values()).sort((a, b) => {
           const aTime = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
           const bTime = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
           return bTime - aTime;
@@ -134,10 +128,12 @@ const PhotoGallery = () => {
         }
 
         console.error("Failed to load photos:", error);
-        cacheRef.current[target].loaded = false;
+        if (!append) cacheRef.current[target].loaded = false;
         setLoadError(error instanceof Error ? error.message : "Failed to load photos");
         setIsLoading(false);
         setIsLoadingMore(false);
+      } finally {
+        if (inFlightRef.current === requestId) inFlightRef.current = null;
       }
     },
     [fetchImages]
@@ -148,7 +144,7 @@ const PhotoGallery = () => {
   }, [filter, loadPhotos]);
 
   const handleLoadMore = useCallback(() => {
-    if (isLoading || isLoadingMore || !hasMore) {
+    if (isLoading || isLoadingMore || inFlightRef.current !== null || !hasMore) {
       return;
     }
 
@@ -177,62 +173,6 @@ const PhotoGallery = () => {
     return Array.from(set).sort();
   }, [photos]);
 
-  const enterEditMode = (photo: ImageMetadata) => {
-    const isSensitive = (photo.imageTags ?? []).some((t) => t.trim().toLowerCase() === "sensitive");
-    setEditTitle(photo.title?.trim() ?? "");
-    setEditDescription(photo.description?.trim() ?? "");
-    setEditTags((photo.imageTags ?? []).filter((t) => t.trim().toLowerCase() !== "sensitive").join(", "));
-    setEditSensitive(isSensitive);
-    setEditError(null);
-    setIsEditing(true);
-  };
-
-  const handleEditSave = async () => {
-    if (!selectedPhoto?.id) return;
-    setIsSaving(true);
-    setEditError(null);
-    try {
-      const tags = editTags.split(",").map((t) => t.trim()).filter(Boolean);
-      if (editSensitive && !tags.includes("sensitive")) tags.push("sensitive");
-      const updated = await updateImageMetadata(selectedPhoto.id, {
-        title: editTitle.trim() || undefined,
-        description: editDescription.trim() || undefined,
-        imageTags: tags.length ? tags : [],
-      });
-      updatePhotoInCache(updated);
-      setSelectedPhoto(updated);
-      setIsEditing(false);
-    } catch (error) {
-      setEditError(error instanceof Error ? error.message : "Failed to save changes");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedPhoto?.id) return;
-    setIsDeleting(true);
-    try {
-      await deleteImage(selectedPhoto.id);
-      // Remove from all caches and current view
-      const id = selectedPhoto.id;
-      const key = selectedPhoto.imageKey;
-      (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
-        cacheRef.current[target].items = cacheRef.current[target].items.filter(
-          (p) => p.id !== id && p.imageKey !== key,
-        );
-      });
-      setPhotos((prev) => prev.filter((p) => p.id !== id && p.imageKey !== key));
-      setIsConfirmDeleteOpen(false);
-      setSelectedPhoto(null);
-    } catch (error) {
-      setEditError(error instanceof Error ? error.message : "Failed to delete photo");
-      setIsConfirmDeleteOpen(false);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const invalidateCache = (targets: PhotoFilter[]) => {
     targets.forEach((target) => {
       cacheRef.current[target] = {
@@ -252,16 +192,14 @@ const PhotoGallery = () => {
           : photo,
       ),
     );
-    const cached = cacheRef.current[filter];
-    cacheRef.current[filter] = {
-      ...cached,
-      items: cached.items.map((photo) =>
+    (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
+      const cached = cacheRef.current[target];
+      cached.items = cached.items.map((photo) =>
         (updated.id && photo.id === updated.id) || photo.imageKey === updated.imageKey
-          ? { ...photo, ...updated }
-          : photo,
-      ),
-    };
-  }, [filter]);
+          ? { ...photo, ...updated } : photo,
+      );
+    });
+  }, []);
 
   const scheduleThumbnailRefresh = useCallback(
     (photo: ImageMetadata, attempt: number) => {
@@ -299,7 +237,7 @@ const PhotoGallery = () => {
 
   useEffect(() => {
     const target = loadMoreRef.current;
-    if (!target || !hasMore) {
+    if (!target || !hasMore || selectedPhotoId !== null || loadError) {
       return;
     }
 
@@ -314,7 +252,7 @@ const PhotoGallery = () => {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [handleLoadMore, hasMore]);
+  }, [handleLoadMore, hasMore, selectedPhotoId, loadError]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -546,7 +484,12 @@ const PhotoGallery = () => {
         <p className="text-sm text-gray-500 font-inter">{filterLabel}</p>
       </div>
       {loadError ? (
-        <div className="text-center text-rose-600 font-inter">{loadError}</div>
+        <div className="text-center text-rose-600 font-inter" role="alert">
+          {loadError}
+          <Button className="ml-2" variant="outline" onClick={() => hasMore ? handleLoadMore() : void loadPhotos(filter)}>
+            Retry gallery
+          </Button>
+        </div>
       ) : null}
 
       {!isLoading && !loadError && photos.length === 0 ? (
@@ -572,7 +515,10 @@ const PhotoGallery = () => {
             <button
               key={photo.id ?? photo.imageKey}
               type="button"
-              onClick={() => setSelectedPhoto(photo)}
+              onClick={(event) => {
+                galleryPositionRef.current = { x: window.scrollX, y: window.scrollY, trigger: event.currentTarget };
+                setSelectedPhotoId(photo.id ?? photo.imageKey);
+              }}
               className="love-card group cursor-pointer overflow-hidden text-left"
             >
               <div className="relative">
@@ -612,183 +558,24 @@ const PhotoGallery = () => {
         </div>
       </div>
 
-      <Dialog open={Boolean(selectedPhoto)} onOpenChange={(open) => {
-        if (!open) {
-          setSelectedPhoto(null);
-          setIsEditing(false);
-          setEditError(null);
-        }
-      }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl font-playfair text-rose-600">
-              {isEditing ? "Edit Photo" : (selectedPhoto?.title?.trim() || "Photo Details")}
-              {!isEditing && selectedPhoto ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => enterEditMode(selectedPhoto)}
-                    className="rounded-md p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                    aria-label="Edit photo"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsConfirmDeleteOpen(true)}
-                    className="rounded-md p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    aria-label="Delete photo"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </>
-              ) : null}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 font-inter">
-              Uploaded by {selectedPhoto?.uploadedBy ?? "Unknown"}
-              {selectedPhoto?.uploadedAt ? ` · ${new Date(selectedPhoto.uploadedAt).toLocaleString()}` : ""}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedPhoto ? (
-            <div className="space-y-4">
-              <div className="rounded-lg overflow-hidden">
-                <img
-                  src={selectedPhoto.url}
-                  alt={selectedPhoto.title?.trim() || selectedPhoto.description?.trim() || "Photo"}
-                  className="w-full max-h-[60vh] object-contain bg-black/5"
-                />
-              </div>
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-photo-title">Title</Label>
-                    <Input
-                      id="edit-photo-title"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      placeholder="Our weekend hike"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-photo-description">Description</Label>
-                    <Textarea
-                      id="edit-photo-description"
-                      value={editDescription}
-                      onChange={(e) => setEditDescription(e.target.value)}
-                      placeholder="Add a short note about this memory"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-photo-tags">Tags (comma separated)</Label>
-                    <Input
-                      id="edit-photo-tags"
-                      value={editTags}
-                      onChange={(e) => setEditTags(e.target.value)}
-                      placeholder="travel, sunset, cozy"
-                    />
-                    {(() => {
-                      const currentTagSet = new Set(
-                        editTags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
-                      );
-                      const suggestions = existingTags.filter((t) => t !== "sensitive" && !currentTagSet.has(t));
-                      if (!suggestions.length) return null;
-                      return (
-                        <div className="flex flex-wrap gap-1.5">
-                          {suggestions.map((tag) => (
-                            <button
-                              key={tag}
-                              type="button"
-                              onClick={() => {
-                                const trimmed = editTags.trimEnd();
-                                setEditTags(trimmed ? `${trimmed}, ${tag}` : tag);
-                              }}
-                              className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs text-rose-700 hover:bg-rose-200 transition-colors"
-                            >
-                              {tag}
-                            </button>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="edit-photo-sensitive"
-                      checked={editSensitive}
-                      onCheckedChange={(checked) => setEditSensitive(Boolean(checked))}
-                    />
-                    <Label htmlFor="edit-photo-sensitive" className="text-sm font-normal cursor-pointer">
-                      Sensitive content (will be blurred in gallery)
-                    </Label>
-                  </div>
-                  {editError ? <p className="text-sm text-rose-600 font-inter">{editError}</p> : null}
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => { setIsEditing(false); setEditError(null); }}
-                      disabled={isSaving}
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Cancel
-                    </Button>
-                    <Button type="button" onClick={handleEditSave} disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {selectedPhoto.description?.trim() ? (
-                    <p className="text-gray-700 font-inter">{selectedPhoto.description.trim()}</p>
-                  ) : null}
-                  {selectedPhoto.imageTags && selectedPhoto.imageTags.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPhoto.imageTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-700 font-inter"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              )}
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-playfair text-gray-900">Delete photo?</DialogTitle>
-            <DialogDescription className="text-gray-600 font-inter">
-              This will permanently delete the photo and cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsConfirmDeleteOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedPhotoId !== null ? <PhotoViewer
+        photos={photos} selectedId={selectedPhotoId} existingTags={existingTags}
+        hasMore={hasMore} isLoadingMore={isLoadingMore} loadError={loadError}
+        onSelect={setSelectedPhotoId} onLoadMore={handleLoadMore} onUpdated={updatePhotoInCache}
+        onDeleted={(deleted) => {
+          const keep = (photo: ImageMetadata) => (deleted.id ? photo.id !== deleted.id : photo.imageKey !== deleted.imageKey);
+          (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
+            cacheRef.current[target].items = cacheRef.current[target].items.filter(keep);
+          });
+          setPhotos((previous) => previous.filter(keep));
+        }}
+        onClose={() => setSelectedPhotoId(null)}
+        onRestoreFocus={() => {
+          const { x, y, trigger } = galleryPositionRef.current;
+          if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+          if (window.scrollX !== x || window.scrollY !== y) window.scrollTo(x, y);
+        }}
+      /> : null}
     </div>
   );
 };
