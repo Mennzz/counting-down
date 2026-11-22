@@ -8,7 +8,6 @@ import {
   listImages,
   listImagesByMe,
   listImagesForMe,
-  requestThumbnailGenerationByKey,
   updateImageMetadata,
   type ImageMetadata,
   type ImagePageResponse
@@ -26,7 +25,6 @@ type PhotoFilter = "all" | "by-me" | "for-me";
 
 const PAGE_SIZE = 12;
 const THUMBNAIL_RETRY_DELAY = 2000;
-const THUMBNAIL_MAX_RETRIES = 4;
 
 const PhotoGallery = () => {
   const [filter, setFilter] = useState<PhotoFilter>("all");
@@ -54,7 +52,7 @@ const PhotoGallery = () => {
   const [editError, setEditError] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const thumbnailRequestedRef = useRef<Set<string>>(new Set());
+  const isMountedRef = useRef(true);
   const thumbnailRetryTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const thumbnailRetryCountsRef = useRef<Record<string, number>>({});
   const cacheRef = useRef<
@@ -268,11 +266,11 @@ const PhotoGallery = () => {
   const scheduleThumbnailRefresh = useCallback(
     (photo: ImageMetadata, attempt: number) => {
       const key = photo.imageKey;
-      if (!key || thumbnailRetryTimeoutsRef.current[key]) {
+      if (!isMountedRef.current || !key || thumbnailRetryTimeoutsRef.current[key]) {
         return;
       }
 
-      const delay = THUMBNAIL_RETRY_DELAY * Math.pow(2, attempt);
+      const delay = Math.min(30000, THUMBNAIL_RETRY_DELAY * Math.pow(2, Math.min(attempt, 4)));
       thumbnailRetryTimeoutsRef.current[key] = setTimeout(async () => {
         delete thumbnailRetryTimeoutsRef.current[key];
         try {
@@ -280,17 +278,16 @@ const PhotoGallery = () => {
             return;
           }
           const updated = await getImageMetadataById(photo.id);
+          if (!isMountedRef.current) return;
           updatePhotoInCache(updated);
           if (!updated.thumbnailXlUrl) {
             const nextAttempt = (thumbnailRetryCountsRef.current[key] ?? 0) + 1;
-            if (nextAttempt <= THUMBNAIL_MAX_RETRIES) {
-              thumbnailRetryCountsRef.current[key] = nextAttempt;
-              scheduleThumbnailRefresh(photo, nextAttempt);
-            }
+            thumbnailRetryCountsRef.current[key] = nextAttempt;
+            scheduleThumbnailRefresh(photo, nextAttempt);
           }
         } catch (error) {
           const nextAttempt = (thumbnailRetryCountsRef.current[key] ?? 0) + 1;
-          if (nextAttempt <= THUMBNAIL_MAX_RETRIES) {
+          if (isMountedRef.current) {
             thumbnailRetryCountsRef.current[key] = nextAttempt;
             scheduleThumbnailRefresh(photo, nextAttempt);
           }
@@ -320,7 +317,9 @@ const PhotoGallery = () => {
   }, [handleLoadMore, hasMore]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       Object.values(thumbnailRetryTimeoutsRef.current).forEach((timeoutId) => clearTimeout(timeoutId));
       thumbnailRetryTimeoutsRef.current = {};
       thumbnailRetryCountsRef.current = {};
@@ -337,18 +336,8 @@ const PhotoGallery = () => {
         return;
       }
 
-      if (!thumbnailRequestedRef.current.has(photo.imageKey)) {
-        thumbnailRequestedRef.current.add(photo.imageKey);
-        thumbnailRetryCountsRef.current[photo.imageKey] = 0;
-        void requestThumbnailGenerationByKey(photo.imageKey).catch((error) => {
-          console.error("Failed to request thumbnail generation:", error);
-        });
-      }
-
       const currentRetries = thumbnailRetryCountsRef.current[photo.imageKey] ?? 0;
-      if (currentRetries < THUMBNAIL_MAX_RETRIES) {
-        scheduleThumbnailRefresh(photo, currentRetries);
-      }
+      scheduleThumbnailRefresh(photo, currentRetries);
     });
   }, [isLoading, photos, scheduleThumbnailRefresh]);
 
@@ -573,7 +562,7 @@ const PhotoGallery = () => {
           const dateLabel = photo.uploadedAt
             ? new Date(photo.uploadedAt).toLocaleDateString()
             : "";
-          const imageUrl = photo.thumbnailXlUrl || photo.thumbnailUrl || photo.url;
+          const imageUrl = photo.thumbnailXlUrl || photo.thumbnailUrl;
           const hasSensitiveTag = (photo.imageTags ?? []).some((tag) => {
             const normalized = tag.trim().toLowerCase();
             return normalized === "sensitive" || normalized === "spicy" || normalized === "nude";
@@ -587,13 +576,15 @@ const PhotoGallery = () => {
               className="love-card group cursor-pointer overflow-hidden text-left"
             >
               <div className="relative">
-                <img
+                {imageUrl ? <img
                   src={imageUrl}
                   alt={caption}
                   loading="lazy"
                   decoding="async"
                   className={`w-full h-64 object-cover rounded-lg transition-transform duration-300 ${hasSensitiveTag ? "blur-xl" : "group-hover:scale-105"}`}
-                />
+                /> : <div className="flex h-64 w-full items-center justify-center rounded-lg bg-rose-50 text-sm text-gray-500" role="status">
+                  Preparing preview…
+                </div>}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
                 <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <h3 className="font-medium mb-1">{caption}</h3>
