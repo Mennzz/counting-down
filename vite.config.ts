@@ -6,9 +6,10 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  // Development talks to a local backend unless another one is chosen explicitly, so local
+  // work never reaches production data by default.
   const backendProxyTarget =
-    env.VITE_BACKEND_PROXY_TARGET ||
-    "https://counting-down-fastapi-c061e3e79aa6.herokuapp.com";
+    env.VITE_BACKEND_PROXY_TARGET || "http://localhost:8000";
 
   return {
     server: {

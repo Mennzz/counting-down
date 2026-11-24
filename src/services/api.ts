@@ -1,6 +1,6 @@
-export const API_BASE_URL = import.meta.env.DEV
-  ? "/api/v1"
-  : "https://counting-down-fastapi-c061e3e79aa6.herokuapp.com/api/v1";
+import { resolveApiBaseUrl } from "@/services/api-base-url";
+
+export const API_BASE_URL = resolveApiBaseUrl(import.meta.env);
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
