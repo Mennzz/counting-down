@@ -174,7 +174,7 @@ export const CountdownSectionSkeleton = () => (
   <SkeletonFrame bones={countdownBones} className="mx-auto max-w-4xl">
     <div className="space-y-8">
       <div className="space-y-4 text-center">
-        <div className="mx-auto h-11 w-[26rem] rounded-2xl bg-white/80" />
+        <div className="mx-auto h-11 w-[26rem] max-w-full rounded-2xl bg-white/80" />
         <div className="mx-auto h-5 w-72 rounded-full bg-white/60" />
       </div>
       <div className={`${cardClass} h-40`} />
@@ -188,7 +188,7 @@ export const TodoListSkeleton = () => (
   <SkeletonFrame bones={todoBones} className="mx-auto max-w-4xl">
     <div className="space-y-8">
       <div className="space-y-4 text-center">
-        <div className="mx-auto h-10 w-[28rem] rounded-2xl bg-white/80" />
+        <div className="mx-auto h-10 w-[28rem] max-w-full rounded-2xl bg-white/80" />
         <div className="mx-auto h-5 w-64 rounded-full bg-white/60" />
       </div>
       <div className={`${cardClass} space-y-6 p-6`}>
@@ -216,7 +216,7 @@ export const MessageFormSkeleton = () => (
   <SkeletonFrame bones={messagesBones} className="mx-auto max-w-4xl">
     <div className="space-y-8">
       <div className="space-y-4 text-center">
-        <div className="mx-auto h-10 w-[22rem] rounded-2xl bg-white/80" />
+        <div className="mx-auto h-10 w-[22rem] max-w-full rounded-2xl bg-white/80" />
         <div className="mx-auto h-5 w-60 rounded-full bg-white/60" />
       </div>
       <div className={`${cardClass} space-y-4 p-6`}>
@@ -239,7 +239,7 @@ export const PhotoGallerySkeleton = () => (
   <SkeletonFrame bones={galleryBones} className="mx-auto max-w-6xl">
     <div className="space-y-8">
       <div className="space-y-4 text-center">
-        <div className="mx-auto h-10 w-[20rem] rounded-2xl bg-white/80" />
+        <div className="mx-auto h-10 w-[20rem] max-w-full rounded-2xl bg-white/80" />
         <div className="mx-auto h-5 w-52 rounded-full bg-white/60" />
       </div>
       <div className="flex items-center justify-between gap-4">
@@ -262,7 +262,7 @@ export const RelationshipStatsSkeleton = () => (
   <SkeletonFrame bones={relationshipBones} className="mx-auto max-w-6xl">
     <div className="space-y-8">
       <div className="space-y-4 text-center">
-        <div className="mx-auto h-10 w-[24rem] rounded-2xl bg-white/80" />
+        <div className="mx-auto h-10 w-[24rem] max-w-full rounded-2xl bg-white/80" />
         <div className="mx-auto h-5 w-64 rounded-full bg-white/60" />
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">

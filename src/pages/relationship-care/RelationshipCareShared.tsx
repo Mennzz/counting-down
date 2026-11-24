@@ -36,7 +36,7 @@ export const RelationshipCareShell = ({
 }) => (
   <div className="min-h-screen romantic-gradient">
     <header className="border-b border-rose-100 bg-white/75 backdrop-blur-sm">
-      <div className="container mx-auto flex items-center justify-between px-4 py-4">
+      <div className="container mx-auto flex items-center justify-between px-3 py-2 sm:px-4 sm:py-4">
         <Button asChild variant="ghost" className="text-gray-600">
           <Link to={backTo}>
             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -49,10 +49,10 @@ export const RelationshipCareShell = ({
         </Link>
       </div>
     </header>
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-3 py-5 sm:px-4 sm:py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-800 sm:text-4xl">{title}</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl font-semibold text-gray-800 sm:text-4xl">{title}</h1>
           {description ? <p className="mt-2 max-w-2xl text-gray-600">{description}</p> : null}
         </div>
         {children}

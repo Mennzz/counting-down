@@ -57,7 +57,7 @@ const Index = () => {
   return (
     <div className="min-h-screen romantic-gradient">
       <Navigation activeSection={activeSection} setActiveSection={setActiveSection} />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 py-4 sm:px-4 sm:py-8">
         <div className="animate-fade-in">
           {renderSection()}
         </div>
