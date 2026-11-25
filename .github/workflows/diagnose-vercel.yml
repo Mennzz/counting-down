@@ -36,6 +36,7 @@ jobs:
           paths = [
               ('account', '/v2/user'),
               ('team', '/teams/' + urllib.parse.quote(org, safe='')),
+              ('team with scope', '/teams/' + urllib.parse.quote(org, safe='') + '?' + urllib.parse.urlencode({'teamId': org})),
               ('project', '/v9/projects/' + urllib.parse.quote(project, safe='') + '?' + urllib.parse.urlencode({'teamId': org})),
           ]
           failed = False
@@ -44,6 +45,9 @@ jobs:
               try:
                   with urllib.request.urlopen(request, timeout=20) as response:
                       print(f'{name}: HTTP {response.status}')
+                      if name == 'project':
+                          data = json.load(response)
+                          print(f'project: owner_matches_org={data.get("accountId") == org}, id_matches_project={data.get("id") == project}')
               except urllib.error.HTTPError as error:
                   failed = True
                   try:
