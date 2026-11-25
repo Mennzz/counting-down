@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -92,5 +93,42 @@ describe("Xiao Bao mediation references", () => {
     expect(messageMascots).toHaveLength(1);
     expect(messageMascots[0]).toHaveAttribute("data-state", "love");
     expect(messageMascots[0]).toHaveAttribute("data-animated", "false");
+  });
+});
+
+describe("Xiao Bao header on small screens", () => {
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    HTMLElement.prototype.hasPointerCapture = vi.fn();
+    HTMLElement.prototype.releasePointerCapture = vi.fn();
+  });
+
+  it("keeps every Xiao Bao page reachable from one menu so the header fits", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <XiaoBaoChat />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "More Xiao Bao pages" }));
+    const menu = await screen.findByRole("menu");
+    const items = within(menu).getAllByRole("menuitem");
+
+    expect(items.map((item) => item.textContent)).toEqual([
+      "Routines & reminders",
+      "Inbox",
+      "Notifications",
+    ]);
+    expect(items.map((item) => item.getAttribute("href"))).toEqual([
+      "/xiaobao/routines",
+      "/xiaobao/inbox",
+      "/xiaobao/notifications",
+    ]);
+    // Wider screens keep the individual icon links.
+    expect(screen.getByRole("link", { name: "Xiao Bao inbox", hidden: true })).toHaveAttribute(
+      "href",
+      "/xiaobao/inbox",
+    );
   });
 });
