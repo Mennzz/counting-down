@@ -3,6 +3,14 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+if ("serviceWorker" in navigator) {
+  void navigator.serviceWorker.register("/xiaobao-push-sw.js", { scope: "/" }).catch((error) => {
+    // Push is an optional enhancement. Keep the authenticated inbox usable when a browser, network,
+    // or stale deployment prevents worker registration.
+    console.warn("Xiao Bao push service worker registration failed", error);
+  });
+}
+
 configureBoneyard({
   animate: "shimmer",
   transition: true,
