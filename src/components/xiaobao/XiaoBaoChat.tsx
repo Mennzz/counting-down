@@ -114,10 +114,11 @@ export function XiaoBaoChat({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-          {/* Phones: the section links share one menu so the header fits next to the close button. */}
+          {/* The drawer is always narrow (28rem at most), so it keeps the section links in one menu.
+              The full page shows them as separate icons once the screen is wide enough. */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="More Xiao Bao pages">
+              <Button variant="ghost" size="icon" className={roomy ? "sm:hidden" : undefined} aria-label="More Xiao Bao pages">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -132,7 +133,7 @@ export function XiaoBaoChat({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {XIAOBAO_SECTIONS.map(({ to, ariaLabel, Icon }) => (
+          {roomy && XIAOBAO_SECTIONS.map(({ to, ariaLabel, Icon }) => (
             <Button key={to} asChild variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label={ariaLabel}>
               <Link to={to} onClick={() => xiaoBao.setIsOpen(false)}><Icon className="h-4 w-4" /></Link>
             </Button>
