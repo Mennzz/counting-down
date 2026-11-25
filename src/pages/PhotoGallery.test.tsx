@@ -80,6 +80,62 @@ const swipe = async (direction: "left" | "right", vertical = false) => {
 
 describe("gallery viewer with the real carousel", () => {
   it.each([["All", "listImages"], ["By Me", "listImagesByMe"], ["From Danfeng", "listImagesForMe"]] as const)(
+    "hides sensitive photos by default and shows blurred photos when enabled for %s", async (label, method) => {
+      const mixed = [photos[0], ...sensitivePhotos(3)];
+      vi.mocked(images[method]).mockResolvedValue({ items: mixed });
+      render(<PhotoGallery />);
+      await userEvent.click(await screen.findByRole("button", { name: label }));
+      expect(await screen.findByRole("button", { name: /all photo 0 / })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /fun photo 0 / })).not.toBeInTheDocument();
+      expect(screen.getByText("1")).toBeInTheDocument();
+      await userEvent.click(screen.getByLabelText("Show sensitive photos"));
+      const sensitive = await screen.findByRole("button", { name: /fun photo 0 / });
+      expect(sensitive.querySelector("img")).toHaveClass("blur-xl");
+      expect(images[method]).toHaveBeenLastCalledWith({ limit: 12, cursor: undefined, excludeSensitive: false });
+      await userEvent.click(screen.getByLabelText("Show sensitive photos"));
+      expect(await screen.findByRole("button", { name: /all photo 0 / })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /fun photo 0 / })).not.toBeInTheDocument();
+    },
+  );
+
+  it("closes the viewer and hides a photo immediately when it is marked sensitive", async () => {
+    vi.mocked(images.updateImageMetadata).mockResolvedValue({ ...photos[0], imageTags: ["sensitive"] });
+    render(<PhotoGallery />);
+    await open();
+    await userEvent.click(screen.getByRole("button", { name: "Edit photo" }));
+    await userEvent.click(screen.getByLabelText("Sensitive content (hidden by default and blurred when shown)"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.queryByRole("button", { name: /all photo 0 / })).not.toBeInTheDocument();
+  });
+
+  it("shows an empty state when all returned photos are sensitive", async () => {
+    vi.mocked(images.listImages).mockResolvedValue({ items: sensitivePhotos(3) });
+    render(<PhotoGallery />);
+    expect(await screen.findByText("No photos to show for this filter.")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText("Show sensitive photos"));
+    expect(await screen.findByRole("button", { name: /fun photo 0 / })).toBeInTheDocument();
+  });
+
+  it("ignores a pending page from the previous visibility setting", async () => {
+    let resolvePage!: (page: images.ImagePageResponse) => void;
+    vi.mocked(images.listImages).mockResolvedValueOnce({ items: photos, nextCursor: "next" })
+      .mockImplementationOnce(() => new Promise((resolve) => { resolvePage = resolve; }))
+      .mockResolvedValueOnce({ items: [photos[0], ...sensitivePhotos(1)] });
+    render(<PhotoGallery />);
+    await screen.findByRole("button", { name: /all photo 0 / });
+    const observer = observers.find((entry) => entry.targets.length > 0)!;
+    act(() => observer.callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
+    await waitFor(() => expect(images.listImages).toHaveBeenCalledTimes(2));
+    await userEvent.click(screen.getByLabelText("Show sensitive photos"));
+    await screen.findByRole("button", { name: /fun photo 0 / });
+    await act(async () => resolvePage({ items: makePhotos(1, "stale") }));
+    expect(screen.queryByRole("button", { name: /stale photo 0 / })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /fun photo 0 / })).toBeInTheDocument();
+  });
+
+  it.each([["All", "listImages"], ["By Me", "listImagesByMe"], ["From Danfeng", "listImagesForMe"]] as const)(
     "opens Fun mode with sensitive photos for %s and preserves the normal gallery", async (label, method) => {
       const list = vi.mocked(images[method]);
       const normal = method === "listImages" ? photos : makePhotos(4, method === "listImagesByMe" ? "mine" : "partner");
@@ -136,14 +192,15 @@ describe("gallery viewer with the real carousel", () => {
 
   it("removes untagged and deleted photos from Fun mode and updates the underlying gallery", async () => {
     const fun = sensitivePhotos(2);
-    vi.mocked(images.listImages).mockResolvedValueOnce({ items: fun }).mockResolvedValueOnce({ items: fun });
+    vi.mocked(images.listImages).mockResolvedValueOnce({ items: fun }).mockResolvedValueOnce({ items: fun })
+      .mockResolvedValueOnce({ items: [{ ...fun[0], imageTags: [] }] });
     vi.mocked(images.updateImageMetadata).mockResolvedValue({ ...fun[0], imageTags: [] });
     render(<PhotoGallery />);
     await userEvent.click(await screen.findByRole("button", { name: "Fun mode" }));
     await screen.findByRole("heading", { name: "fun photo 0" });
     await userEvent.click(screen.getByRole("button", { name: "Edit photo" }));
     expect(screen.getByRole("button", { name: "Next photo" })).toBeDisabled();
-    await userEvent.click(screen.getByLabelText("Sensitive content (will be blurred in gallery)"));
+    await userEvent.click(screen.getByLabelText("Sensitive content (hidden by default and blurred when shown)"));
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByRole("heading", { name: "fun photo 1" })).toBeInTheDocument();
     expect(images.updateImageMetadata).toHaveBeenCalledWith("fun-0", expect.objectContaining({ imageTags: [] }));
@@ -152,7 +209,7 @@ describe("gallery viewer with the real carousel", () => {
     expect(await screen.findByText("No sensitive photos for this filter.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Back to gallery" }));
     expect(screen.queryByRole("button", { name: /fun photo 1 / })).not.toBeInTheDocument();
-    const card = screen.getByRole("button", { name: /fun photo 0 / });
+    const card = await screen.findByRole("button", { name: /fun photo 0 / });
     expect(card.querySelector("img")).not.toHaveClass("blur-xl");
   });
 
@@ -248,7 +305,7 @@ describe("gallery viewer with the real carousel", () => {
     await open(1, prefix);
     await userEvent.keyboard("{ArrowRight}");
     expect(heading(`${prefix} photo 2`)).toBeInTheDocument();
-    expect(images[method]).toHaveBeenCalledWith({ limit: 12, cursor: undefined });
+    expect(images[method]).toHaveBeenCalledWith({ limit: 12, cursor: undefined, excludeSensitive: true });
     expect(originalSources().every((url) => url.includes(prefix))).toBe(true);
   });
 
@@ -261,7 +318,7 @@ describe("gallery viewer with the real carousel", () => {
     await userEvent.click(screen.getByRole("button", { name: "By Me" }));
     await open(9, "mine");
     await waitFor(() => expect(images.listImagesByMe).toHaveBeenCalledTimes(2));
-    expect(images.listImagesByMe).toHaveBeenLastCalledWith({ limit: 12, cursor: "mine-page-2" });
+    expect(images.listImagesByMe).toHaveBeenLastCalledWith({ limit: 12, cursor: "mine-page-2", excludeSensitive: true });
     expect(heading("mine photo 9")).toBeInTheDocument();
     await act(async () => resolvePage({ items: makePhotos(4, "mine", 11) }));
     expect(heading("mine photo 9")).toBeInTheDocument();
@@ -286,7 +343,7 @@ describe("gallery viewer with the real carousel", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Next photo" })).toBeEnabled());
     await userEvent.keyboard("{ArrowRight}");
     expect(heading("all photo 12")).toBeInTheDocument();
-    expect(images.listImages).toHaveBeenLastCalledWith({ limit: 12, cursor: "page-2" });
+    expect(images.listImages).toHaveBeenLastCalledWith({ limit: 12, cursor: "page-2", excludeSensitive: true });
   });
 
   it("locks all navigation during editing, saves by ID and updates cached filters", async () => {
