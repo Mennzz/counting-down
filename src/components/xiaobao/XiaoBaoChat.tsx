@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { ArrowUp, Bell, History, Inbox, Loader2, Plus, RefreshCw, Repeat2, Square, Trash2 } from "lucide-react";
+import { ArrowUp, Bell, History, Inbox, Loader2, MoreHorizontal, Plus, RefreshCw, Repeat2, Square, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -21,6 +21,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useXiaoBao } from "@/hooks/use-xiaobao";
@@ -29,6 +35,12 @@ import { XiaoBaoMarkdown } from "./XiaoBaoMarkdown";
 import { XiaoBaoMascot, type XiaoBaoMascotState } from "./XiaoBaoMascot";
 import { XiaoBaoProposalCard } from "./XiaoBaoProposalCard";
 import { XIAOBAO_STARTER_PROMPTS } from "./xiaobao-config";
+
+const XIAOBAO_SECTIONS = [
+  { to: "/xiaobao/routines", label: "Routines & reminders", ariaLabel: "Xiao Bao routines and reminders", Icon: Repeat2 },
+  { to: "/xiaobao/inbox", label: "Inbox", ariaLabel: "Xiao Bao inbox", Icon: Inbox },
+  { to: "/xiaobao/notifications", label: "Notifications", ariaLabel: "Xiao Bao notifications", Icon: Bell },
+];
 
 export function XiaoBaoChat({
   roomy = false,
@@ -98,19 +110,33 @@ export function XiaoBaoChat({
             animated={headerMascotState !== "idle"}
           />
           <div className="min-w-0">
-            <h1 className="font-semibold text-rose-950">Xiao Bao</h1>
+            <h1 className="whitespace-nowrap font-semibold text-rose-950">Xiao Bao</h1>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button asChild variant="ghost" size="icon" aria-label="Xiao Bao routines and reminders">
-            <Link to="/xiaobao/routines" onClick={() => xiaoBao.setIsOpen(false)}><Repeat2 className="h-4 w-4" /></Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon" aria-label="Xiao Bao inbox">
-            <Link to="/xiaobao/inbox" onClick={() => xiaoBao.setIsOpen(false)}><Inbox className="h-4 w-4" /></Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon" aria-label="Xiao Bao notifications">
-            <Link to="/xiaobao/notifications" onClick={() => xiaoBao.setIsOpen(false)}><Bell className="h-4 w-4" /></Link>
-          </Button>
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+          {/* Phones: the section links share one menu so the header fits next to the close button. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="More Xiao Bao pages">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {XIAOBAO_SECTIONS.map(({ to, label, Icon }) => (
+                <DropdownMenuItem key={to} asChild>
+                  <Link to={to} onClick={() => xiaoBao.setIsOpen(false)}>
+                    <Icon className="mr-2 h-4 w-4" />
+                    {label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {XIAOBAO_SECTIONS.map(({ to, ariaLabel, Icon }) => (
+            <Button key={to} asChild variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label={ariaLabel}>
+              <Link to={to} onClick={() => xiaoBao.setIsOpen(false)}><Icon className="h-4 w-4" /></Link>
+            </Button>
+          ))}
           <Button variant="ghost" size="icon" aria-label="Conversation history" onClick={() => setShowHistory((value) => !value)}>
             <History className="h-4 w-4" />
           </Button>

@@ -93,7 +93,7 @@ export default function XiaoBaoRoutinesPage() {
       description="Choose a one-time reminder or a recurring message that Xiao Bao prepares privately for you. You can create one here or ask Xiao Bao in chat to suggest it."
     >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline"><Link to="/xiaobao/inbox"><Inbox className="mr-2 h-4 w-4" />Open inbox</Link></Button>
           <Button onClick={() => setCreateOpen(true)}><Plus className="mr-2 h-4 w-4" />New reminder or routine</Button>
         </div>

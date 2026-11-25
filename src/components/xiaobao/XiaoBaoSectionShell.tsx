@@ -22,17 +22,18 @@ export function XiaoBaoSectionShell({
           <Button asChild variant="ghost" className="text-gray-600">
             <Link to="/xiaobao"><ArrowLeft className="mr-2 h-4 w-4" />Back to Xiao Bao</Link>
           </Button>
-          <nav aria-label="Xiao Bao" className="flex items-center gap-1">
-            <Button asChild variant={location.pathname === "/xiaobao/routines" ? "secondary" : "ghost"} size="sm">
-              <Link to="/xiaobao/routines"><Repeat2 className="mr-2 h-4 w-4" />Routines & reminders</Link>
+          {/* Phones: one row that scrolls sideways instead of running off the screen. */}
+          <nav aria-label="Xiao Bao" className="-mx-1 flex w-full items-center gap-1 overflow-x-auto px-1 pb-1 sm:mx-0 sm:w-auto sm:overflow-visible sm:px-0 sm:pb-0">
+            <Button asChild variant={location.pathname === "/xiaobao/routines" ? "secondary" : "ghost"} size="sm" className="shrink-0 px-2 sm:px-3">
+              <Link to="/xiaobao/routines"><Repeat2 className="mr-2 h-4 w-4" /><span className="sm:hidden">Routines</span><span className="hidden sm:inline">Routines & reminders</span></Link>
             </Button>
-            <Button asChild variant={location.pathname === "/xiaobao/inbox" ? "secondary" : "ghost"} size="sm">
+            <Button asChild variant={location.pathname === "/xiaobao/inbox" ? "secondary" : "ghost"} size="sm" className="shrink-0 px-2 sm:px-3">
               <Link to="/xiaobao/inbox"><Inbox className="mr-2 h-4 w-4" />Inbox</Link>
             </Button>
-            <Button asChild variant={location.pathname === "/xiaobao/notifications" ? "secondary" : "ghost"} size="sm">
+            <Button asChild variant={location.pathname === "/xiaobao/notifications" ? "secondary" : "ghost"} size="sm" className="shrink-0 px-2 sm:px-3">
               <Link to="/xiaobao/notifications"><Bell className="mr-2 h-4 w-4" />Notifications</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="shrink-0 px-2 sm:px-3">
               <Link to="/xiaobao"><MessageCircleHeart className="mr-2 h-4 w-4" />Chat</Link>
             </Button>
           </nav>
