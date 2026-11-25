@@ -278,7 +278,7 @@ export function PhotoViewer({ photos, selectedId, existingTags, hasMore, isLoadi
                       onCheckedChange={(checked) => setEditSensitive(Boolean(checked))}
                     />
                     <Label htmlFor="edit-photo-sensitive" className="text-sm font-normal cursor-pointer">
-                      Sensitive content (will be blurred in gallery)
+                      Sensitive content (hidden by default and blurred when shown)
                     </Label>
                   </div>
                   {editError ? <p className="text-sm text-rose-600 font-inter">{editError}</p> : null}

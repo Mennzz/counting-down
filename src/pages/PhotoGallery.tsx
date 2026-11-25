@@ -23,12 +23,16 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
 type PhotoFilter = "all" | "by-me" | "for-me";
+type CacheKey = `${PhotoFilter}-${"visible" | "hidden"}`;
+const cacheKey = (filter: PhotoFilter, showSensitive: boolean): CacheKey => `${filter}-${showSensitive ? "visible" : "hidden"}`;
+const emptyCache = () => ({ items: [] as ImageMetadata[], nextCursor: null as string | null, hasMore: true, loaded: false });
 
 const PAGE_SIZE = 12;
 const THUMBNAIL_RETRY_DELAY = 2000;
 
 const PhotoGallery = () => {
   const [filter, setFilter] = useState<PhotoFilter>("all");
+  const [showSensitive, setShowSensitive] = useState(false);
   const [photos, setPhotos] = useState<ImageMetadata[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -51,11 +55,11 @@ const PhotoGallery = () => {
   const thumbnailRetryTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const thumbnailRetryCountsRef = useRef<Record<string, number>>({});
   const cacheRef = useRef<
-    Record<PhotoFilter, { items: ImageMetadata[]; nextCursor: string | null; hasMore: boolean; loaded: boolean }>
+    Record<CacheKey, { items: ImageMetadata[]; nextCursor: string | null; hasMore: boolean; loaded: boolean }>
   >({
-    all: { items: [], nextCursor: null, hasMore: true, loaded: false },
-    "by-me": { items: [], nextCursor: null, hasMore: true, loaded: false },
-    "for-me": { items: [], nextCursor: null, hasMore: true, loaded: false }
+    "all-hidden": emptyCache(), "all-visible": emptyCache(),
+    "by-me-hidden": emptyCache(), "by-me-visible": emptyCache(),
+    "for-me-hidden": emptyCache(), "for-me-visible": emptyCache(),
   });
   const requestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -64,7 +68,7 @@ const PhotoGallery = () => {
     userType === "Joris" ? "Danfeng" : userType === "Danfeng" ? "Joris" : "Partner";
 
   const fetchImages = useCallback(async (target: PhotoFilter, cursor?: string | null): Promise<ImagePageResponse> => {
-    const params = { limit: PAGE_SIZE, cursor };
+    const params = { limit: PAGE_SIZE, cursor, excludeSensitive: !showSensitive };
     if (target === "by-me") {
       return await listImagesByMe(params);
     }
@@ -72,13 +76,14 @@ const PhotoGallery = () => {
       return await listImagesForMe(params);
     }
     return await listImages(params);
-  }, []);
+  }, [showSensitive]);
 
   const loadPhotos = useCallback(
     async (target: PhotoFilter, cursor?: string | null, append?: boolean) => {
       const requestId = ++requestRef.current;
       inFlightRef.current = requestId;
-      const cached = cacheRef.current[target];
+      const key = cacheKey(target, showSensitive);
+      const cached = cacheRef.current[key];
 
       if (!append && cached.loaded) {
         inFlightRef.current = null;
@@ -114,7 +119,7 @@ const PhotoGallery = () => {
         const next = page.nextCursor ?? null;
         const more = Boolean(next);
 
-        cacheRef.current[target] = {
+        cacheRef.current[key] = {
           items: sorted,
           nextCursor: next,
           hasMore: more,
@@ -131,7 +136,7 @@ const PhotoGallery = () => {
         }
 
         console.error("Failed to load photos:", error);
-        if (!append) cacheRef.current[target].loaded = false;
+        if (!append) cacheRef.current[key].loaded = false;
         setLoadError(error instanceof Error ? error.message : "Failed to load photos");
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -139,7 +144,7 @@ const PhotoGallery = () => {
         if (inFlightRef.current === requestId) inFlightRef.current = null;
       }
     },
-    [fetchImages]
+    [fetchImages, showSensitive]
   );
 
   useEffect(() => {
@@ -154,7 +159,8 @@ const PhotoGallery = () => {
     void loadPhotos(filter, nextCursor, true);
   }, [filter, hasMore, isLoading, isLoadingMore, loadPhotos, nextCursor]);
 
-  const photoCount = photos.length;
+  const visiblePhotos = useMemo(() => showSensitive ? photos : photos.filter((photo) => !isSensitivePhoto(photo)), [photos, showSensitive]);
+  const photoCount = visiblePhotos.length;
   const filterLabel = useMemo(() => {
     if (filter === "by-me") return "By Me";
     if (filter === "for-me") return `From ${otherUser}`;
@@ -178,16 +184,16 @@ const PhotoGallery = () => {
 
   const invalidateCache = (targets: PhotoFilter[]) => {
     targets.forEach((target) => {
-      cacheRef.current[target] = {
-        items: [],
-        nextCursor: null,
-        hasMore: true,
-        loaded: false
-      };
+      cacheRef.current[cacheKey(target, false)] = emptyCache();
+      cacheRef.current[cacheKey(target, true)] = emptyCache();
     });
   };
 
   const updatePhotoInCache = useCallback((updated: ImageMetadata) => {
+    const previous = Object.values(cacheRef.current).flatMap((cached) => cached.items).find((photo) =>
+      (updated.id && photo.id === updated.id) || photo.imageKey === updated.imageKey,
+    );
+    const sensitivityChanged = !previous || isSensitivePhoto(previous) !== isSensitivePhoto(updated);
     setPhotos((prev) =>
       prev.map((photo) =>
         (updated.id && photo.id === updated.id) || photo.imageKey === updated.imageKey
@@ -195,19 +201,22 @@ const PhotoGallery = () => {
           : photo,
       ),
     );
-    (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
-      const cached = cacheRef.current[target];
+    Object.values(cacheRef.current).forEach((cached) => {
       cached.items = cached.items.map((photo) =>
         (updated.id && photo.id === updated.id) || photo.imageKey === updated.imageKey
           ? { ...photo, ...updated } : photo,
       );
+      if (sensitivityChanged) cached.loaded = false;
     });
-  }, []);
+    if (!showSensitive && isSensitivePhoto(updated)) {
+      setSelectedPhotoId((selected) => selected === (updated.id ?? updated.imageKey) ? null : selected);
+    }
+  }, [showSensitive]);
 
   const deletePhotoFromCache = (deleted: ImageMetadata) => {
     const keep = (photo: ImageMetadata) => (deleted.id ? photo.id !== deleted.id : photo.imageKey !== deleted.imageKey);
-    (["all", "by-me", "for-me"] as PhotoFilter[]).forEach((target) => {
-      cacheRef.current[target].items = cacheRef.current[target].items.filter(keep);
+    Object.values(cacheRef.current).forEach((cached) => {
+      cached.items = cached.items.filter(keep);
     });
     setPhotos((previous) => previous.filter(keep));
   };
@@ -476,7 +485,7 @@ const PhotoGallery = () => {
                     onCheckedChange={(checked) => setUploadSensitive(Boolean(checked))}
                   />
                   <Label htmlFor="upload-photo-sensitive" className="text-sm font-normal cursor-pointer">
-                    Sensitive content (will be blurred in gallery)
+                    Sensitive content (hidden by default and blurred when shown)
                   </Label>
                 </div>
                 {uploadError ? (
@@ -502,6 +511,16 @@ const PhotoGallery = () => {
             </DialogContent>
           </Dialog>
         </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="show-sensitive-photos" checked={showSensitive} onCheckedChange={(checked) => {
+            requestRef.current += 1;
+            inFlightRef.current = null;
+            setSelectedPhotoId(null);
+            setIsLoading(true);
+            setShowSensitive(checked === true);
+          }} />
+          <Label htmlFor="show-sensitive-photos" className="text-sm font-normal text-gray-600 cursor-pointer">Show sensitive photos</Label>
+        </div>
         <p className="text-sm text-gray-500 font-inter">{filterLabel}</p>
       </div>
       {loadError ? (
@@ -513,12 +532,12 @@ const PhotoGallery = () => {
         </div>
       ) : null}
 
-      {!isLoading && !loadError && photos.length === 0 ? (
-        <div className="text-center text-gray-500 font-inter">No photos to show yet.</div>
+      {!isLoading && !loadError && visiblePhotos.length === 0 && !hasMore ? (
+        <div className="text-center text-gray-500 font-inter">No photos to show for this filter.</div>
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {photos.map((photo) => {
+        {visiblePhotos.map((photo) => {
           const caption =
             photo.title?.trim() ||
             photo.description?.trim() ||
@@ -577,7 +596,7 @@ const PhotoGallery = () => {
       </div>
 
       {selectedPhotoId !== null ? <PhotoViewer
-        photos={photos} selectedId={selectedPhotoId} existingTags={existingTags}
+        photos={visiblePhotos} selectedId={selectedPhotoId} existingTags={existingTags}
         hasMore={hasMore} isLoadingMore={isLoadingMore} loadError={loadError}
         onSelect={setSelectedPhotoId} onLoadMore={handleLoadMore} onUpdated={updatePhotoInCache}
         onDeleted={deletePhotoFromCache}
@@ -586,7 +605,10 @@ const PhotoGallery = () => {
       /> : null}
       {isFunModeOpen ? <FunPhotoViewer filter={filter} filterLabel={filterLabel}
         onUpdated={updatePhotoInCache} onDeleted={deletePhotoFromCache}
-        onClose={() => setIsFunModeOpen(false)} onRestoreFocus={restoreGalleryFocus} /> : null}
+        onClose={() => {
+          setIsFunModeOpen(false);
+          if (!cacheRef.current[cacheKey(filter, showSensitive)].loaded) void loadPhotos(filter);
+        }} onRestoreFocus={restoreGalleryFocus} /> : null}
     </div>
   );
 };
