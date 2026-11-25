@@ -96,7 +96,7 @@ describe("Xiao Bao mediation references", () => {
   });
 });
 
-describe("Xiao Bao header on small screens", () => {
+describe("Xiao Bao header layout", () => {
   beforeAll(() => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     HTMLElement.prototype.hasPointerCapture = vi.fn();
@@ -125,10 +125,22 @@ describe("Xiao Bao header on small screens", () => {
       "/xiaobao/inbox",
       "/xiaobao/notifications",
     ]);
-    // Wider screens keep the individual icon links.
+    // The drawer is narrow on every screen, so it never adds the separate icon links.
+    expect(screen.queryByRole("link", { name: "Xiao Bao inbox", hidden: true })).not.toBeInTheDocument();
+  });
+
+  it("shows separate section icons on the full Xiao Bao page", () => {
+    render(
+      <MemoryRouter>
+        <XiaoBaoChat roomy />
+      </MemoryRouter>,
+    );
+
+    // Hidden on phones by CSS (the menu is used there); visible from the sm breakpoint.
     expect(screen.getByRole("link", { name: "Xiao Bao inbox", hidden: true })).toHaveAttribute(
       "href",
       "/xiaobao/inbox",
     );
+    expect(screen.getByRole("button", { name: "More Xiao Bao pages" })).toHaveClass("sm:hidden");
   });
 });
