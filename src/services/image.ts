@@ -1,6 +1,7 @@
 import { API_BASE_URL, ApiError } from "@/services/api";
 import { processResponse } from "@/utils/api";
 import { getSessionId } from "@/utils/cookies";
+import { uploadImageDirect } from "@/services/image-upload";
 
 export type ImageMetadata = {
   id?: string | null;
@@ -117,25 +118,21 @@ export const createImageMetadata = async (
   payload: CreateImagePayload,
 ): Promise<ImageMetadata> => {
   const sessionId = getSessionHeader();
-  const formData = new FormData();
-  formData.append("image", payload.image);
-  formData.append("uploaded_by", payload.uploadedBy);
-  if (payload.title) {
-    formData.append("title", payload.title);
-  }
-  if (payload.description) {
-    formData.append("description", payload.description);
-  }
-  if (payload.imageTags?.length) {
-    payload.imageTags.forEach((tag) => formData.append("image_tags", tag));
-  }
+  const uploadKey = await uploadImageDirect(payload.image, "gallery");
 
-  return await fetchJson<ImageMetadata>(`${API_BASE_URL}/images/`, {
+  return await fetchJson<ImageMetadata>(`${API_BASE_URL}/images/from-upload`, {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       "X-Session-Id": sessionId,
     },
-    body: formData,
+    body: JSON.stringify({
+      upload_key: uploadKey,
+      uploaded_by: payload.uploadedBy,
+      ...(payload.title ? { title: payload.title } : {}),
+      ...(payload.description ? { description: payload.description } : {}),
+      image_tags: payload.imageTags ?? [],
+    }),
   });
 };
 
