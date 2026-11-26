@@ -2,6 +2,7 @@ import { API_BASE_URL, ApiError } from "@/services/api";
 import { processResponse } from "@/utils/api";
 import type { AdventEntry, CreateAdventEntry } from "@/types/advent";
 import { getSessionId } from "@/utils/cookies";
+import { uploadImageDirect } from "@/services/image-upload";
 
 export const getAdventsByMe = async (): Promise<AdventEntry[]> => {
   const sessionId = getSessionId();
@@ -123,19 +124,21 @@ export const createAdvent = async (
     throw new Error("No active session");
   }
 
-  const formData = new FormData();
-  formData.append("day", advent.day.toString());
-  formData.append("title", advent.title);
-  formData.append("description", advent.description);
-  formData.append("type", advent.type);
-  formData.append("image", image);
+  const uploadKey = await uploadImageDirect(image, "advent");
 
-  const response = await fetch(`${API_BASE_URL}/advent/`, {
+  const response = await fetch(`${API_BASE_URL}/advent/from-upload`, {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       "X-Session-Id": sessionId,
     },
-    body: formData,
+    body: JSON.stringify({
+      upload_key: uploadKey,
+      day: advent.day,
+      title: advent.title,
+      description: advent.description,
+      type: advent.type,
+    }),
   });
 
   if (!response.ok) {
